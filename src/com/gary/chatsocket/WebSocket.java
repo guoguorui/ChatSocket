@@ -208,8 +208,8 @@ class ReadThread extends Thread{
 	        int readThisFragment = 1;
 	        ByteBuffer byteBuf = ByteBuffer.allocate(payloadLength + 25);
 	        String name="";
-	        for(String getKey: Response.socketToName.keySet()){  
-	        	   if(Response.socketToName.get(getKey).equals(client)){  
+	        for(String getKey: Response.nameToSocket.keySet()){  
+	        	   if(Response.nameToSocket.get(getKey).equals(client)){  
 	        	             name = getKey;  
 	               }
 	        }
@@ -233,7 +233,8 @@ class ReadThread extends Thread{
 	        //responseClient(byteBuf, true);
 	        WebSocket.printRes(byteBuf.array());
 	        String message=new String(byteBuf.array());
-	        Response.mass(message);
+	        //Response.mass(message);
+	        Response.chatToOne(name,message);
 	    }
 	}
 	catch(Exception e) {

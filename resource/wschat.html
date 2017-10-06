@@ -6,8 +6,8 @@
 </head>
 
 <body>
-	<p align="center" id="username">{name}</p>
-	
+	<span id="username" style="margin-left: 40%">{name}</span>
+	<span> chat to {friend}</span>
 	<div align="center">
 	<textarea rows="5" cols="50" id="message" readonly="readonly"></textarea>
 	<div id="state" style="height: 100px;"></div>
@@ -17,6 +17,7 @@
 	<button id="send" onclick="send();" disabled="disabled">发送数据</button>
 	<button id="disconnect" onclick="disconnect();" disabled="disabled">断开连接</button>
 	</div>
+	<a href="/">主页</a>
 	
 	<script type="text/javascript">
 	var websocket = null;
@@ -65,7 +66,7 @@
 		try{
 			websocket.send(text);
 		}catch(exception){
-			message.innerHTML += "<p>发送数据出错</p>";
+			message.innerHTML += "本地显示出错";
 		}
 		document.getElementById("text").value = "";
 		document.getElementById("text").focus();

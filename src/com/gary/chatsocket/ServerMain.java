@@ -20,6 +20,7 @@ import java.net.Socket;
 //处理/favicon.ico
 //@SuppressWarnings("resource")  
 //搞定乱七八糟的空指针
+//搞定中转错误
 public class ServerMain {
 
 	public static void main(String[] args) throws IOException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, ClassNotFoundException, InstantiationException, NoSuchMethodException, SecurityException, CloneNotSupportedException {

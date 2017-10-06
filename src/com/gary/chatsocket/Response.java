@@ -20,7 +20,9 @@ public class Response {
 	boolean cookie=false;
 	boolean enableSession=false;
 	String name="BALALA";
-	static HashMap<String,Socket> socketToName=new HashMap<String,Socket>();
+	String friend="CHALABLA";
+	static HashMap<String,Socket> nameToSocket=new HashMap<String,Socket>();
+	static HashMap<String,String> nameToFriend=new HashMap<String,String>();
 	//static ArrayList<Socket> als=new ArrayList<Socket>();
 	//String filename="E:\\EclipseProject\\ChatSocket\\resource\\";
 	String filename=System.getProperty("user.dir")+"\\resource\\";
@@ -39,9 +41,9 @@ public class Response {
 			WebSocket ws=new WebSocket(path.split("\\$")[1],pw,client);
 			name=path.substring(2, 5);
 			//String address=client.getInetAddress() + ":" + client.getPort();
-			socketToName.put(name,client);
+			nameToSocket.put(name,client);
 			System.out.println(name);
-			System.out.println(socketToName.get(name));
+			System.out.println(nameToSocket.get(name));
 			ws.connect();
 			new ReadThread(client).start();
 			//sb才不return
@@ -75,6 +77,7 @@ public class Response {
 			System.out.println("");
 			return;
 		}
+		
 		//实际ajax聊天
 		else if(path.contains("sent")) {
 			sentMessage(path);
@@ -82,14 +85,18 @@ public class Response {
 			return;
 		}
 		//请求chat页面
+		/*
 		else if(path.contains("chat")) {
 			doSafe(path,"chat");
 			System.out.println("");
 			return;
 		}
-		
+		*/
+		// ‘=’并非特殊符号
 		else if(path.contains("wschat")) {
-			doSafe(path,"wschat");
+			friend=path.split("=")[1];
+			nameToFriend.put(name, friend);
+			directView("wschat");
 			System.out.println("");
 			return;
 		}
@@ -131,8 +138,16 @@ public class Response {
 		StringBuilder sb=new StringBuilder();
 		
 		String temp;
+		//省略了数据库查询
+		if(path.contains("chatwho")) {
+			if(name.equals("GGR"))
+				name="abc";
+			else if(name.equals("abc"))
+				name="GGR";
+		}
 		while((temp=br.readLine())!=null) {
-			temp=temp.replaceAll("\\{.*?\\}", name);
+			temp=temp.replaceAll("\\{name\\}", name);
+			temp=temp.replaceAll("\\{friend\\}", friend);
 			sb.append(temp);
 		}
 		temp=sb.toString();
@@ -224,13 +239,27 @@ public class Response {
 	}
 	
 	public static void mass(String message) {
-		for(String name:socketToName.keySet()) {
-			Socket client=socketToName.get(name);
+		for(String name:nameToSocket.keySet()) {
+			Socket client=nameToSocket.get(name);
 			if(client.isClosed())
-				socketToName.remove(name);
+				nameToSocket.remove(name);
 			else
-				new WriteThread(socketToName.get(name),message).start();
+				new WriteThread(client,message).start();
 		}
+	}
+	
+	public static void chatToOne(String name,String message) {
+		String friend=nameToFriend.get(name);
+		Socket friendClient=nameToSocket.get(friend);
+		Socket localClient=nameToSocket.get(name);
+		if(friendClient.isClosed())
+			nameToSocket.remove(name);
+		else {
+			new WriteThread(localClient,message).start();
+			new WriteThread(friendClient,message).start();
+			
+		}
+			
 	}
 	
 }
