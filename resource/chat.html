@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Insert title here</title>
+</head>
+<body>
+<p align="center" id="username">{name}</p>
+<textarea rows="5" cols="50" style="margin-left: 25%;margin-top: 10%;" id="show" readonly="readonly"></textarea>
+<textarea rows="1" cols="50" style="margin-left: 25%;" id="messages"></textarea>
+<button onclick="sentMessages()">Sent</button>
+<a href="/">主页</a>
+
+<script type="text/javascript">
+	function sentMessages(){
+		setTimeout(function(){
+			var xmlhttp;
+			var messages=document.getElementById("messages").value;
+			var address="/sent?messages="+messages;
+			console.log(messages);
+			xmlhttp=new XMLHttpRequest();
+			xmlhttp.open("GET",address,true);
+			xmlhttp.send();	
+			xmlhttp.onreadystatechange=function()
+			{
+				if (xmlhttp.readyState==4 && xmlhttp.status==200)
+				{
+					console.log("sent success");					
+					var username=document.getElementById("username").innerHTML;
+					document.getElementById("show").value+=username+":"+document.getElementById("messages").value+"\n";
+					document.getElementById("show").scrollTop="500000";
+					document.getElementById("messages").value="";
+					document.getElementById("messages").focus();				
+				}
+			}
+		},1);
+		
+	}
+</script>
+
+<script type="text/javascript">
+	function sentMessagesa(){
+		console.log("inot sent");
+		setTimeout(function(){
+			var messages=document.getElementById("messages").value;
+			console.log(messages);
+		},1);
+	}
+	
+</script>
+
+</body>
+</html>

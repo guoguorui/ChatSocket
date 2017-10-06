@@ -1,0 +1,62 @@
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Insert title here</title>
+<link href="static/bootstrap/css/bootstrap.min.css" rel="stylesheet"/> 
+</head>
+<body>
+
+<h1>Hello,This is from index.html</h1>
+<a href="/another">To another page.</a>
+<br></br>
+<a href="/chat">To chat</a>
+<br></br>
+<a href="/wschat">To wschat</a>
+<br></br>
+<button onclick="startajax()" class="btn btn-default">Ajax测试</button>
+<button onclick="starttest()" class="btn btn-default">JDBC测试</button>
+<br></br>
+<span id="show">These text will be resplaced by ajax.</span>
+
+<script type="text/javascript">
+	function startajax(){
+		setTimeout(function(){
+			var xmlhttp;
+			var address="/ajax";
+			xmlhttp=new XMLHttpRequest();
+			xmlhttp.open("GET",address,true);
+			xmlhttp.send();	
+			xmlhttp.onreadystatechange=function()
+			{
+				if (xmlhttp.readyState==4 && xmlhttp.status==200)
+				{
+					document.getElementById("show").innerHTML=xmlhttp.responseText;				
+				}
+			}
+		},1);
+		
+	}
+</script>
+
+<script type="text/javascript">
+	function starttest(){
+		setTimeout(function(){
+			var xmlhttp;
+			var address="/jdbc";
+			xmlhttp=new XMLHttpRequest();
+			xmlhttp.open("GET",address,true);
+			xmlhttp.send();	
+			xmlhttp.onreadystatechange=function()
+			{
+				if (xmlhttp.readyState==4 && xmlhttp.status==200)
+				{
+					document.getElementById("show").innerHTML=xmlhttp.responseText;				
+				}
+			}
+		},1);
+		
+	}
+</script>
+
+</body>
+</html>

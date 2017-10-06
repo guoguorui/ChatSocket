@@ -1,0 +1,84 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+<title>Web Socket Demo --  EchoClient</title>
+<meta charset="utf-8">
+</head>
+
+<body>
+	<p align="center" id="username">{name}</p>
+	
+	<div align="center">
+	<textarea rows="5" cols="50" id="message" readonly="readonly"></textarea>
+	<div id="state" style="height: 100px;"></div>
+	<p>请输入一些文字</p>
+	<input type="text" id="text"/>
+	<button id="connect" onclick="connect();">建立连接</button>
+	<button id="send" onclick="send();" disabled="disabled">发送数据</button>
+	<button id="disconnect" onclick="disconnect();" disabled="disabled">断开连接</button>
+	</div>
+	
+	<script type="text/javascript">
+	var websocket = null;
+	function connect(){
+		console.log("into connect");
+		var state = document.getElementById("state");
+		var message = document.getElementById("message");
+		
+		try{
+			
+			var readyState = new Array("正在连接", "已建立连接", "正在关闭连接"
+						, "已关闭连接");
+			var host = "ws://localhost:80";
+			websocket = new WebSocket(host);
+			document.getElementById("connect").disabled=true;
+			document.getElementById("disconnect").disabled=false;
+			document.getElementById("send").disabled=false;
+			websocket.onopen = function(){
+				state.innerHTML += "<p>Socket状态： " + readyState[websocket.readyState] + "</p>";
+			};
+			websocket.onmessage = function(event){
+				message.innerHTML +=event.data+"\n";
+				message.scrollTop="500000";
+			};
+			websocket.onclose　= function(){
+				state.innerHTML += "<p>Socket状态： " + readyState[websocket.readyState] + "</p>";
+			};
+			state = document.getElementById("state");
+			if(state.innerHTML!="")
+				state.innerHTML="";
+			state.innerHTML += "<p>Socket状态： " + readyState[websocket.readyState] + "</p>";
+			
+		}catch(exception){
+			state.innerHTML += "<p>有错误发生</p>";
+		}
+		
+	}
+
+	function send(){
+		var message = document.getElementById("message");
+		var text = document.getElementById("text").value;
+		if(text == ""){
+			msg.innerHTML += "<p>请输入一些文字</p>";
+			return;
+		}
+		try{
+			websocket.send(text);
+		}catch(exception){
+			message.innerHTML += "<p>发送数据出错</p>";
+		}
+		document.getElementById("text").value = "";
+		document.getElementById("text").focus();
+		
+	}
+
+	function disconnect(){
+		websocket.close();
+		document.getElementById("connect").disabled=false;
+		document.getElementById("disconnect").disabled=true;
+		document.getElementById("send").disabled=true;
+	}
+</script>
+
+</body>
+</html>
