@@ -21,13 +21,16 @@ public class Request {
 		String cookieName="";
 		String keyLine="";
 		int ch=0;
-		StringBuffer sb = new StringBuffer();
+		StringBuffer sb = new StringBuffer();	
+		//避免读到的是空行
+		while(true) {
+			if(line!=null)
+				break;
+			else
+				line = br.readLine();   
+		}
 		if(line.contains("GET")) {  
-            	path=line.split(" ")[1];
-            	
-            	//if(!path.contains("sent"))
-            		//System.out.println(path);
-            	
+            	path=line.split(" ")[1];         	
 	            while((line=br.readLine())!=null) {
 	            	if(line.equals(""))
 	            		break;
@@ -36,7 +39,7 @@ public class Request {
 	            		if(line.contains("Cookie")) {
 	             			cookieName=line.split("=")[1].substring(0, 3);
 	     	            	cookie=true;
-	     	            	//System.out.print("cookie yes from ");  	     
+	     	            	//System.out.print("cookie yes from ");
 	             		}
 	            		if(line.contains("Sec-WebSocket-Key")) {
 	            			keyLine=line.substring(line.indexOf("Key") + 4, line.length()).trim();
@@ -52,8 +55,6 @@ public class Request {
 			if(websocket) 
 				path+="$"+keyLine;
 			System.out.println(path);
-			if(path.contains("favicon"))
-				System.out.println("");
 			//response之前无法关闭输入流
 			return path;
 		}
@@ -88,8 +89,9 @@ public class Request {
 		   num--;
 	    }
 	    System.out.println("out of post");
-	    System.out.println(path+"?messages"+sb.toString());
-        return path+"?messages"+sb.toString();
+	    //System.out.println(path+"?messages"+sb.toString());
+	    System.out.println(path+"?"+sb.toString());
+        return path+"?"+sb.toString();
 	}
 	
 }

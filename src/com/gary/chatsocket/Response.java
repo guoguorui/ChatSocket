@@ -4,9 +4,7 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.io.UnsupportedEncodingException;
 import java.net.Socket;
-import java.net.URLDecoder;
 import java.sql.SQLException;
 import java.util.HashMap;
 
@@ -23,7 +21,6 @@ public class Response {
 	String friend="CHALABLA";
 	static HashMap<String,Socket> nameToSocket=new HashMap<String,Socket>();
 	static HashMap<String,String> nameToFriend=new HashMap<String,String>();
-	//static ArrayList<Socket> als=new ArrayList<Socket>();
 	//String filename="E:\\EclipseProject\\ChatSocket\\resource\\";
 	String filename=System.getProperty("user.dir")+"\\resource\\";
 	static String destination;
@@ -40,7 +37,6 @@ public class Response {
 		if(path.contains("$")) {
 			WebSocket ws=new WebSocket(path.split("\\$")[1],pw,client);
 			name=path.substring(2, 5);
-			//String address=client.getInetAddress() + ":" + client.getPort();
 			nameToSocket.put(name,client);
 			System.out.println(name);
 			System.out.println(nameToSocket.get(name));
@@ -78,20 +74,12 @@ public class Response {
 			return;
 		}
 		
-		//实际ajax聊天
-		else if(path.contains("sent")) {
-			sentMessage(path);
+		else if(path.contains("chatwho")) {
+			doSafe(path,"chatwho");
 			System.out.println("");
 			return;
 		}
-		//请求chat页面
-		/*
-		else if(path.contains("chat")) {
-			doSafe(path,"chat");
-			System.out.println("");
-			return;
-		}
-		*/
+			
 		// ‘=’并非特殊符号
 		else if(path.contains("wschat")) {
 			friend=path.split("=")[1];
@@ -112,22 +100,15 @@ public class Response {
 			System.out.println("");
 			return;
 		}
-		
-		else if(path.contains("safe")) {
-			doSafe(path,"safe");
-			System.out.println("");
-			return;
-		}
-		
+				
 		else if(path.contains("static")) {
 			directStatic(path);
-			System.out.println("");
 			return;
 		}
 		
 		else {
 			directView(path);
-			System.out.println("");
+			//System.out.println("");
 		}
 			
 	}
@@ -139,11 +120,11 @@ public class Response {
 		
 		String temp;
 		//省略了数据库查询
-		if(path.contains("chatwho")) {
+		if(path.contains("chatwho") || path.contains("wschat")) {
 			if(name.equals("GGR"))
-				name="abc";
+				friend="abc";
 			else if(name.equals("abc"))
-				name="GGR";
+				friend="GGR";
 		}
 		while((temp=br.readLine())!=null) {
 			temp=temp.replaceAll("\\{name\\}", name);
@@ -151,13 +132,15 @@ public class Response {
 			sb.append(temp);
 		}
 		temp=sb.toString();
-		if(destination!=null && !cookie && enableSession)
+		if(destination!=null && !cookie && enableSession) {
+			System.out.println("发送cookie前的name："+name);
 		pw.write("HTTP/1.1 200 OK\r\n"
 	    		+ "Server:ChatSocket\r\n"
 	    		+ "Content-Type:text/html\r\n"
 	    		+ "Connection:keep-alive\r\n"
 	    		+ "Set-Cookie: JSESSIONID="+name+"023EE23711E1FEB5F792CFD9752F9F79;path=/;HttpOnly\r\n"
 	    		+ "\r\n"+temp+"\n");
+		}
 		else {
 			pw.write(head+temp+"\n");;
 		}
@@ -205,22 +188,12 @@ public class Response {
 		}
 		return;
 	}
-	//实际用户发送数据ajax,此ajax已被抛弃
-	public void sentMessage(String path) throws UnsupportedEncodingException {
-		String messages=path.substring("/sent?messages".length());
-		messages=URLDecoder.decode(messages, "utf-8");
-		System.out.println(messages);
-		//if(als.get(0)!=null)
-			//new WriteThread(als.get(0),name+": "+messages).start();
-		//非要写点东西
-		pw.write(" ");
-		pw.close();
-	}
-	
+
 	public synchronized void doProcessLogin(String path) throws IOException {
 		String param=path.split("\\?")[1];
 		String name=param.split("&")[0].split("=")[1];
 		this.name=name;
+		//登录路径异常
 		String password=param.split("&")[1].split("=")[1];
 		OperData od=new OperData();
 		if(od.authenticate(name, password)) {

@@ -9,18 +9,17 @@ import java.lang.reflect.InvocationTargetException;
 import java.net.ServerSocket;
 import java.net.Socket;
 
-//实现通信框架
+
 //支持post的multipart
 //devtools
 //API化
 //实现Controller注解支持
 //实现orm
-//用集合处理post数据
 //密码加密
 //处理/favicon.ico
-//@SuppressWarnings("resource")  
 //搞定乱七八糟的空指针
-//搞定中转错误
+//处理不在线
+//修改页面，需要重启
 public class ServerMain {
 
 	public static void main(String[] args) throws IOException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, ClassNotFoundException, InstantiationException, NoSuchMethodException, SecurityException, CloneNotSupportedException {
