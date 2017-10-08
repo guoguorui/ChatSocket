@@ -15,11 +15,12 @@ import java.net.Socket;
 //API化
 //实现Controller注解支持
 //实现orm
-//密码加密
 //处理/favicon.ico
 //搞定乱七八糟的空指针
 //处理不在线
 //修改页面，需要重启
+//静态缓存处理
+//处理图像传输
 public class ServerMain {
 
 	public static void main(String[] args) throws IOException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, ClassNotFoundException, InstantiationException, NoSuchMethodException, SecurityException, CloneNotSupportedException {

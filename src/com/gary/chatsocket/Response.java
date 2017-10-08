@@ -157,6 +157,13 @@ public class Response {
 			sb.append(temp);
 		}
 		temp=sb.toString();
+		//no for firefox but work with chrome
+		pw.write("HTTP/1.1 200 OK\r\n"
+	    		+ "Server:ChatSocket\r\n"
+	    		+ "Content-Type:text/html\r\n"
+	    		+ "Cache-Control:max-age=31536000\r\n"
+	    		+ "Last-Modified:Thu, 28 Sep 2017 07:43:37 GMT\r\n"
+	    		+ "Connection:keep-alive\r\n\r\n");
 		pw.write(temp+"\n");
 		br.close();
 		pw.close();
