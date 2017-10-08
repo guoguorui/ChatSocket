@@ -133,13 +133,12 @@ public class Response {
 		}
 		temp=sb.toString();
 		if(destination!=null && !cookie && enableSession) {
-			System.out.println("发送cookie前的name："+name);
-		pw.write("HTTP/1.1 200 OK\r\n"
-	    		+ "Server:ChatSocket\r\n"
-	    		+ "Content-Type:text/html\r\n"
-	    		+ "Connection:keep-alive\r\n"
-	    		+ "Set-Cookie: JSESSIONID="+name+"023EE23711E1FEB5F792CFD9752F9F79;path=/;HttpOnly\r\n"
-	    		+ "\r\n"+temp+"\n");
+			pw.write("HTTP/1.1 200 OK\r\n"
+		    		+ "Server:ChatSocket\r\n"
+		    		+ "Content-Type:text/html\r\n"
+		    		+ "Connection:keep-alive\r\n"
+		    		+ "Set-Cookie: JSESSIONID="+name+"023EE23711E1FEB5F792CFD9752F9F79;path=/;HttpOnly\r\n"
+		    		+ "\r\n"+temp+"\n");
 		}
 		else {
 			pw.write(head+temp+"\n");;
@@ -193,7 +192,6 @@ public class Response {
 		String param=path.split("\\?")[1];
 		String name=param.split("&")[0].split("=")[1];
 		this.name=name;
-		//登录路径异常
 		String password=param.split("&")[1].split("=")[1];
 		OperData od=new OperData();
 		if(od.authenticate(name, password)) {
