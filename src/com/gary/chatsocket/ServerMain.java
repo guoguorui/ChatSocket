@@ -15,12 +15,10 @@ import java.net.Socket;
 //API化
 //实现Controller注解支持
 //实现orm
-//处理/favicon.ico
-//搞定乱七八糟的空指针
 //处理不在线
 //修改页面，需要重启
 //静态缓存处理
-//处理图像传输
+//压缩传输
 public class ServerMain {
 
 	public static void main(String[] args) throws IOException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, ClassNotFoundException, InstantiationException, NoSuchMethodException, SecurityException, CloneNotSupportedException {
@@ -29,13 +27,7 @@ public class ServerMain {
 		try {
 		while(true) {
 			Socket client=serverSocket.accept();
-			System.out.println("\n"
-					+ client.getInetAddress() + ":" + client.getPort());
-            BufferedReader br=new BufferedReader(new InputStreamReader(client.getInputStream()));
-            PrintWriter pw=new PrintWriter(client.getOutputStream());
-            //偶尔抽风在这里发生空指针异常
-	        String path=parseRequest(br);
-			exceService(br,pw,path,client);
+			exceService(client);
 		}
 		}
 		catch(Exception e) {
@@ -47,13 +39,16 @@ public class ServerMain {
 		
 	}
 		
-	public static void exceService(final BufferedReader br,final PrintWriter pw,final String path,final Socket client) {
+	public static void exceService(final Socket client) {
 		new Thread(new Runnable() {
 			@Override
 			public void run() {
-				try {          
+				try {
+					//System.out.println("\n"+ client.getInetAddress() + ":" + client.getPort());
+					BufferedReader br=new BufferedReader(new InputStreamReader(client.getInputStream()));
+			        PrintWriter pw=new PrintWriter(client.getOutputStream());
 					Response sent=new Response(pw,client);
-			        sent.doSent(path);
+			        sent.doSent(new Request(br).getPath(client));
 				}
 				catch(Exception e) {
 					e.printStackTrace();
@@ -61,12 +56,5 @@ public class ServerMain {
 			}
 			
 		}).start();;
-	}
-	
-	public static String parseRequest(BufferedReader br) throws IOException {
-		Request r=new Request(br);
-		String path=r.getPath();
-		return path;
-		
 	}
 }

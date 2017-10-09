@@ -1,8 +1,11 @@
 package com.gary.chatsocket;
 
 import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.net.Socket;
 import java.sql.SQLException;
@@ -24,42 +27,47 @@ public class Response {
 	//String filename="E:\\EclipseProject\\ChatSocket\\resource\\";
 	String filename=System.getProperty("user.dir")+"\\resource\\";
 	static String destination;
-	static String head="HTTP/1.1 200 OK\r\n"
-    		+ "Server:ChatSocket\r\n"
+	static String statusLine="HTTP/1.1 200 OK\r\n";
+	static String responseHeader="Server:ChatSocket\r\n"
+    		//+ "Content-Encoding: gzip\r\n"
     		+ "Content-Type:text/html\r\n"
-    		+ "Connection:keep-alive\r\n\r\n";
+    		+ "Connection:keep-alive\r\n";
+	static String head=statusLine+responseHeader;
 	public Response(PrintWriter pw,Socket client) throws IOException {
 		this.pw=pw;
 		this.client=client;
 	}
 	
 	public void doSent(String path) throws IOException, SQLException {
+		
+		//僵尸socket处理
+		if(path.equals("")) {
+			pw.write(head+"\r\nSorry, please refresh.\n");
+			pw.close();
+			return;
+		}
+		
+		//websocket处理
 		if(path.contains("$")) {
 			WebSocket ws=new WebSocket(path.split("\\$")[1],pw,client);
 			name=path.substring(2, 5);
 			nameToSocket.put(name,client);
-			System.out.println(name);
-			System.out.println(nameToSocket.get(name));
 			ws.connect();
 			new ReadThread(client).start();
 			//sb才不return
 			//pw不能在这里close，这个socket要手动升级为websocket
 			return;
 		}
+		
+		//cookie处理
 		if(path.contains("*")) {
 			//因为是正则，所以需要转义
 			name=path.split("\\*")[1];
 			path=path.split("\\*")[0];
 			cookie=true;
-		}
+		}		
 		
-		if(path.contains("favicon.ico")) {
-			pw.write(" ");
-			pw.close();
-			return;
-		}
-		
-			
+		//路径替换处理
 		if(path.equals("/")) {
 			path="index";
 		}	
@@ -68,12 +76,18 @@ public class Response {
 			path=path.substring(1);
 		}
 		
-		if(path.contains("ajax")) {
-			doAjax();
-			System.out.println("");
+		//图标处理
+		if(path.contains("favicon.ico")) {
+			path="static/favicon.ico";
+		}
+		
+		//静态资源处理
+		if(path.contains("static")) {
+			directStatic(path);
 			return;
 		}
 		
+		//chat处理
 		else if(path.contains("chatwho")) {
 			doSafe(path,"chatwho");
 			System.out.println("");
@@ -89,8 +103,16 @@ public class Response {
 			return;
 		}
 		
+		//登录处理
 		else if(path.contains("processLogin")) {
 			doProcessLogin(path);
+			System.out.println("");
+			return;
+		}
+		
+		//响应ajax
+		else if(path.contains("ajax")) {
+			doAjax();
 			System.out.println("");
 			return;
 		}
@@ -100,15 +122,9 @@ public class Response {
 			System.out.println("");
 			return;
 		}
-				
-		else if(path.contains("static")) {
-			directStatic(path);
-			return;
-		}
 		
 		else {
 			directView(path);
-			//System.out.println("");
 		}
 			
 	}
@@ -117,7 +133,6 @@ public class Response {
 		filename+=path+".html";
 		br=new BufferedReader(new FileReader(filename));
 		StringBuilder sb=new StringBuilder();
-		
 		String temp;
 		//省略了数据库查询
 		if(path.contains("chatwho") || path.contains("wschat")) {
@@ -132,16 +147,13 @@ public class Response {
 			sb.append(temp);
 		}
 		temp=sb.toString();
+		//temp=GzipContent.compress(temp);
 		if(destination!=null && !cookie && enableSession) {
-			pw.write("HTTP/1.1 200 OK\r\n"
-		    		+ "Server:ChatSocket\r\n"
-		    		+ "Content-Type:text/html\r\n"
-		    		+ "Connection:keep-alive\r\n"
-		    		+ "Set-Cookie: JSESSIONID="+name+"023EE23711E1FEB5F792CFD9752F9F79;path=/;HttpOnly\r\n"
-		    		+ "\r\n"+temp+"\n");
+			pw.write(head+ "Set-Cookie: JSESSIONID="+name+"023EE23711E1FEB5F792CFD9752F9F79;path=/;HttpOnly\r\n\r\n"
+		    		     +temp+"\n");
 		}
 		else {
-			pw.write(head+temp+"\n");;
+			pw.write(head+"\r\n"+temp+"\n");;
 		}
 		br.close();
 		pw.close();
@@ -150,6 +162,15 @@ public class Response {
 	public void directStatic(String path) throws IOException {
 		path=path.replaceAll("/", "\\\\");
 		String staticName=filename+path;
+		String cache=statusLine
+				   +"Server:ChatSocket\r\n"
+				   + "Age:520\r\n"
+				   + "Cache-Control:max-age=5184000\r\n"
+				   + "Last-Modified:Thu, 28 Sep 2017 07:43:37 GMT\r\n"
+				   + "Date: Mon, 09 Oct 2017 03:35:31 GMT\r\n"
+				   + "Expires: Fri, 08 Dec 2017 03:35:31 GMT\r\n";
+		//图片需要用字节数组传输
+		if(!path.contains(".jpg") && !path.contains(".ico")) {
 		br=new BufferedReader(new FileReader(staticName));
 		StringBuilder sb=new StringBuilder();
 		String temp;
@@ -157,15 +178,31 @@ public class Response {
 			sb.append(temp);
 		}
 		temp=sb.toString();
-		//no for firefox but work with chrome
-		pw.write("HTTP/1.1 200 OK\r\n"
-	    		+ "Server:ChatSocket\r\n"
-	    		+ "Content-Type:text/html\r\n"
-	    		+ "Cache-Control:max-age=31536000\r\n"
-	    		+ "Last-Modified:Thu, 28 Sep 2017 07:43:37 GMT\r\n"
-	    		+ "Connection:keep-alive\r\n\r\n");
-		pw.write(temp+"\n");
+		//cache no for firefox but work with chrome
+		pw.write(cache
+				+ "Content-Type=text/css\r\n"
+				+ "\r\n");
+		//temp=GzipContent.compress(temp);
+		pw.write(temp);
 		br.close();
+		}
+		else {
+			//似乎在chrome只能cache from memory不能是disk
+			OutputStream os=client.getOutputStream();
+			String sta=cache
+					+ "Content-Type=image/*\r\n"
+					+ "\r\n";
+			os.write(sta.getBytes());
+			os.flush();
+			FileInputStream fis=new FileInputStream(new File(staticName));
+			int length;
+			byte[] img=new byte[1024];
+			while((length=fis.read(img, 0, 1024))>0) {
+				os.write(img,0,length);
+				os.flush();
+			}
+			fis.close();
+		}	
 		pw.close();
 	}
 	
@@ -211,7 +248,7 @@ public class Response {
 				directView("index");
 		}
 		else {
-			pw.write(head+"sorry invalid account.\n");
+			pw.write(head+"\r\nsorry invalid account.\n");
 			pw.close();
 		}
 	}

@@ -13,7 +13,6 @@ import java.security.MessageDigest;
 
 public class WebSocket {
 	
-	boolean handshake=false;
 	String key;
 	PrintWriter pw;
 	Socket client;
@@ -25,7 +24,6 @@ public class WebSocket {
 	
 	public void connect() {
 		try {
-			if(!handshake) {
 				key+= "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
 				MessageDigest md = MessageDigest.getInstance("SHA-1");  
 				md.update(key.getBytes("utf-8"), 0, key.length());
@@ -38,8 +36,6 @@ public class WebSocket {
 				pw.println("Sec-WebSocket-Accept: " + key);
 				pw.println();
 				pw.flush();
-				handshake = true;
-			}
 		}
 		catch(Exception e) {
 			e.printStackTrace();

@@ -2,6 +2,7 @@ package com.gary.chatsocket;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.net.Socket;
 
 
 
@@ -11,9 +12,7 @@ public class Request {
 		this.br=br;
 	}
 	//不同浏览器，提交的header不完全相同
-	public String getPath() throws IOException {
-		boolean one=false;
-		boolean two=false;
+	public String getPath(Socket client) throws IOException {
 		boolean cookie=false;
 		boolean websocket=false;
 		String line = br.readLine();   
@@ -22,19 +21,18 @@ public class Request {
 		String keyLine="";
 		int ch=0;
 		StringBuffer sb = new StringBuffer();	
-		//避免读到的是空行
-		while(true) {
-			if(line!=null)
-				break;
-			else
-				line = br.readLine();   
-		}
+		//可能是由缓存机制引起的空socket
+		if(line==null) {
+			//System.out.println("哥，这里有人是null");
+			return "";
+		}	
+				
+		System.out.println("\n"+ client.getInetAddress() + ":" + client.getPort());
+		
 		if(line.contains("GET")) {  
             	path=line.split(" ")[1];         	
 	            while((line=br.readLine())!=null) {
-	            	if(line.equals(""))
-	            		break;
-	            	else {
+	            	if(!line.equals("")) {
 	            		//System.out.println(line);
 	            		if(line.contains("Cookie")) {
 	             			cookieName=line.split("=")[1].substring(0, 3);
@@ -46,7 +44,9 @@ public class Request {
 	            			websocket=true;
 	            			//System.out.println("姑娘们，出来接客啦,这个老板是："+keyLine);
 	            		}
-	            		
+	            	}            	
+	            	else {
+	            		break;    		
 	            	}
 	            }
 			//System.out.println("out of while");
@@ -65,31 +65,27 @@ public class Request {
 		System.out.println(path);
 		String temp="";
 		//在head和data间有一个空行，需要根据长度逐个字符读取
-        while(line!=null) {
-        	if(line.contains("Content-Length")) {
-        		temp=line.substring(16);		
-        	}
-        	if(line.contains("Upgrade-Insecure-Requests"))
-        		one=true;
-        	if(line.contains("Accept-Language"))
-        		two=true;
-        	if(one && two)
-        		break;
-        	//System.out.println(line);
-        	line=br.readLine();
-        }
+		 while((line=br.readLine())!=null) {
+         	if(!line.equals("")) {
+         		if(line.contains("Content-Length")) {
+            		temp=line.substring(16);
+            	}
+         	}            	
+         	else {
+         		break;    		
+         	}
+         }
+		System.out.println("out of post");
         int num=Integer.parseInt(temp);
         ch=br.read();
         ch=br.read();
-        
-        
+        num=num-2;
 	    while(num!=0){
 		   ch=br.read();
 		   sb.append((char)ch);
 		   num--;
 	    }
-	    System.out.println("out of post");
-	    //System.out.println(path+"?messages"+sb.toString());
+	    //System.out.println("out of post");
 	    System.out.println(path+"?"+sb.toString());
         return path+"?"+sb.toString();
 	}
