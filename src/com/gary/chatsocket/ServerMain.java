@@ -16,9 +16,7 @@ import java.net.Socket;
 //实现Controller注解支持
 //实现orm
 //处理不在线
-//修改页面，需要重启
-//静态缓存处理
-//压缩传输
+//性能调优
 public class ServerMain {
 
 	public static void main(String[] args) throws IOException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, ClassNotFoundException, InstantiationException, NoSuchMethodException, SecurityException, CloneNotSupportedException {

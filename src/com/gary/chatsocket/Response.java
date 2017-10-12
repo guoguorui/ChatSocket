@@ -29,20 +29,20 @@ public class Response {
 	static String destination;
 	static String statusLine="HTTP/1.1 200 OK\r\n";
 	static String responseHeader="Server:ChatSocket\r\n"
-    		//+ "Content-Encoding: gzip\r\n"
     		+ "Content-Type:text/html\r\n"
     		+ "Connection:keep-alive\r\n";
-	static String head=statusLine+responseHeader;
+	static String header=statusLine+responseHeader;
+	static String gzipHeader=header+"Content-Encoding: gzip\r\n";
 	public Response(PrintWriter pw,Socket client) throws IOException {
 		this.pw=pw;
 		this.client=client;
 	}
 	
-	public void doSent(String path) throws IOException, SQLException {
+	public void doSent(String path) throws Exception {
 		
 		//僵尸socket处理
 		if(path.equals("")) {
-			pw.write(head+"\r\nSorry, please refresh.\n");
+			pw.write(header+"\r\nSorry, please refresh.\n");
 			pw.close();
 			return;
 		}
@@ -79,6 +79,19 @@ public class Response {
 		//图标处理
 		if(path.contains("favicon.ico")) {
 			path="static/favicon.ico";
+		}
+		
+		//压缩处理
+		//不传输length也没毛病
+		if(path.contains("testgzip")){
+			OutputStream os=client.getOutputStream();
+			byte[]  hb=GZip.compressString("hello");
+			String headg=header+"Content-Encoding: gzip\r\n\r\n";
+			os.write(headg.getBytes());
+			os.write(hb);
+			os.flush();
+			os.close();
+			return;
 		}
 		
 		//静态资源处理
@@ -149,14 +162,16 @@ public class Response {
 		temp=sb.toString();
 		//temp=GzipContent.compress(temp);
 		if(destination!=null && !cookie && enableSession) {
-			pw.write(head+ "Set-Cookie: JSESSIONID="+name+"023EE23711E1FEB5F792CFD9752F9F79;path=/;HttpOnly\r\n\r\n"
-		    		     +temp+"\n");
+			//pw.write(header+ "Set-Cookie: JSESSIONID="+name+"023EE23711E1FEB5F792CFD9752F9F79;path=/;HttpOnly\r\n\r\n"
+		    //		     +temp+"\n");
+			compress(gzipHeader+"Set-Cookie: JSESSIONID="+name+"023EE23711E1FEB5F792CFD9752F9F79;path=/;HttpOnly\r\n\r\n",temp);
 		}
 		else {
-			pw.write(head+"\r\n"+temp+"\n");;
+			//pw.write(header+"\r\n"+temp+"\n");;
+			compress(gzipHeader+"\r\n",temp);
 		}
-		br.close();
-		pw.close();
+		//br.close();
+		//pw.close();
 	}
 	
 	public void directStatic(String path) throws IOException {
@@ -164,6 +179,7 @@ public class Response {
 		String staticName=filename+path;
 		String cache=statusLine
 				   +"Server:ChatSocket\r\n"
+				   //+ "Content-Encoding:gzip\r\n"
 				   + "Age:520\r\n"
 				   + "Cache-Control:max-age=5184000\r\n"
 				   + "Last-Modified:Thu, 28 Sep 2017 07:43:37 GMT\r\n"
@@ -179,12 +195,15 @@ public class Response {
 		}
 		temp=sb.toString();
 		//cache no for firefox but work with chrome
-		pw.write(cache
+		//pw.write(cache
+		//		+ "Content-Type=text/css\r\n"
+		//		+ "\r\n");
+		//pw.write(temp);
+		//br.close();
+		compress(cache
+				+ "Content-Encoding:gzip\r\n"
 				+ "Content-Type=text/css\r\n"
-				+ "\r\n");
-		//temp=GzipContent.compress(temp);
-		pw.write(temp);
-		br.close();
+				+ "\r\n",temp);
 		}
 		else {
 			//似乎在chrome只能cache from memory不能是disk
@@ -202,8 +221,9 @@ public class Response {
 				os.flush();
 			}
 			fis.close();
+			pw.close();
 		}	
-		pw.close();
+		//pw.close();
 	}
 	
 	public void doAjax() {
@@ -248,7 +268,7 @@ public class Response {
 				directView("index");
 		}
 		else {
-			pw.write(head+"\r\nsorry invalid account.\n");
+			pw.write(header+"\r\nsorry invalid account.\n");
 			pw.close();
 		}
 	}
@@ -275,6 +295,20 @@ public class Response {
 			
 		}
 			
+	}
+	
+	public void compress(String header,String content){
+		try {
+		OutputStream os=client.getOutputStream();
+		byte[] csb=GZip.compressString(content);
+		os.write(header.getBytes("UTF-8"));
+		os.write(csb);
+		os.flush();
+		os.close();
+		}
+		catch(Exception e) {
+			e.printStackTrace();
+		}
 	}
 	
 }
