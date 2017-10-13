@@ -2,21 +2,15 @@ package com.gary.chatsocket;
 import java.sql.*;
 
 public class OperData {
-
-	 static final String JDBC_DRIVER = "com.mysql.jdbc.Driver";  
-	 static final String DB_URL = "jdbc:mysql://localhost/test";
-	 
-	 static final String USER = "root";
-	 static final String PASS = "";
 	   
 	 Connection conn = null;
 	 Statement stmt = null;
 	 ResultSet rs=null;
+	 ConnectPool cp=null;
 	 
-	 public OperData() {
+	 public OperData(ConnectPool cp) {
 		 	try {
-		 		Class.forName("com.mysql.jdbc.Driver");
-		        conn = DriverManager.getConnection(DB_URL,USER,PASS);
+		        conn = cp.getConnFromPool();
 		        stmt = conn.createStatement();
 		    }
 		   catch(Exception e) {
@@ -33,6 +27,7 @@ public class OperData {
 				 name = rs.getString("name");
 		     }
 			 cleanClose();
+			 //fateClose();
 		}
 	    catch(Exception e) {
 		    e.printStackTrace();
@@ -59,10 +54,12 @@ public class OperData {
 	   }
 	   
 	   public void cleanClose() {
+		   boolean flag=false;
 		   try{
 			   rs.close();
 		       stmt.close();
 		       conn.close();
+		       flag=true;
 		   }catch(SQLException se){
 		      //Handle errors for JDBC
 		      se.printStackTrace();
@@ -77,11 +74,18 @@ public class OperData {
 		      }catch(SQLException se2){
 		      }// nothing we can do
 		      try{
-		         if(conn!=null)
-		            conn.close();
-		      }catch(SQLException se){
-		         se.printStackTrace();
-		      }//end finally try
+		         if(flag==false) {
+		        	 conn.close();
+		         }
+		        	 
+		      }catch(SQLException se2){
+		      }
 		   }//end try
+	   }
+	   
+	   public void fateClose() throws SQLException {
+		   rs.close();
+	       stmt.close();
+	       conn.close(); 
 	   }
 }

@@ -37,13 +37,17 @@ public class Request {
 	            		if(line.contains("Cookie")) {
 	             			cookieName=line.split("=")[1].substring(0, 3);
 	     	            	cookie=true;
-	     	            	//System.out.print("cookie yes from ");
 	             		}
 	            		if(line.contains("Sec-WebSocket-Key")) {
 	            			keyLine=line.substring(line.indexOf("Key") + 4, line.length()).trim();
 	            			websocket=true;
-	            			//System.out.println("姑娘们，出来接客啦,这个老板是："+keyLine);
 	            		}
+	            		/*
+	            		if(line.contains("Cache-Control") && path.contains("static")) {
+	            			System.out.println(path+"/Cache-Control");
+	            			return path+"/Cache-Control";
+	            		}
+	            		*/
 	            	}            	
 	            	else {
 	            		break;    		

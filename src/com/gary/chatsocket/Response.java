@@ -9,7 +9,10 @@ import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.net.Socket;
 import java.sql.SQLException;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.HashMap;
+import java.util.Locale;
 
 
 //html不能在脚本间用注释//
@@ -22,15 +25,18 @@ public class Response {
 	boolean enableSession=false;
 	String name="BALALA";
 	String friend="CHALABLA";
+	static ConnectPool cp=new ConnectPool();
 	static HashMap<String,Socket> nameToSocket=new HashMap<String,Socket>();
 	static HashMap<String,String> nameToFriend=new HashMap<String,String>();
 	//String filename="E:\\EclipseProject\\ChatSocket\\resource\\";
 	String filename=System.getProperty("user.dir")+"\\resource\\";
 	static String destination;
+	static String date=getDate();
 	static String statusLine="HTTP/1.1 200 OK\r\n";
 	static String responseHeader="Server:ChatSocket\r\n"
     		+ "Content-Type:text/html\r\n"
-    		+ "Connection:keep-alive\r\n";
+    		+ "Connection:keep-alive\r\n"
+    		+ "Date:"+date+"\r\n";
 	static String header=statusLine+responseHeader;
 	static String gzipHeader=header+"Content-Encoding: gzip\r\n";
 	public Response(PrintWriter pw,Socket client) throws IOException {
@@ -41,11 +47,21 @@ public class Response {
 	public void doSent(String path) throws Exception {
 		
 		//僵尸socket处理
-		if(path.equals("")) {
+		if(path.equals("") || path.contains("router")) {
 			pw.write(header+"\r\nSorry, please refresh.\n");
 			pw.close();
 			return;
 		}
+		
+		/*
+		//大概是经过了304的错误repsonse，firefox浏览器不再轻易缓存
+		//资源更新验证
+		if(path.contains("Cache-Control")) {
+			pw.write("HTTP/1.1 304 Not Modified\r\n"+responseHeader+"Content-Encoding: gzip\r\n\r\n");
+			pw.close();
+			return;
+		}
+		*/
 		
 		//websocket处理
 		if(path.contains("$")) {
@@ -180,10 +196,15 @@ public class Response {
 		String cache=statusLine
 				   +"Server:ChatSocket\r\n"
 				   //+ "Content-Encoding:gzip\r\n"
-				   + "Age:520\r\n"
+				   + "Age:25205862\r\n"
 				   + "Cache-Control:max-age=5184000\r\n"
 				   + "Last-Modified:Thu, 28 Sep 2017 07:43:37 GMT\r\n"
-				   + "Date: Mon, 09 Oct 2017 03:35:31 GMT\r\n"
+				   + "Date:"+date+"\r\n"
+				   + "Accept-Ranges: bytes\r\n"
+				   + "Vary: Accept-Encoding,User-Agent\r\n"
+				   + "Ohc-Response-Time: 1 0 0 0 0 0\r\n"
+				   + "Connection: keep-alive\r\n"
+				   + "ETag: \"16e36-540b1498e39c0\"\r\n"
 				   + "Expires: Fri, 08 Dec 2017 03:35:31 GMT\r\n";
 		//图片需要用字节数组传输
 		if(!path.contains(".jpg") && !path.contains(".ico")) {
@@ -234,7 +255,7 @@ public class Response {
 	
 	public void doJdbc() throws SQLException {
 		System.out.println("into doJdbc()");
-		OperData od=new OperData();
+		OperData od=new OperData(cp);
 		String username=od.findName();
 		pw.write(username+"\n");
 		pw.close();
@@ -257,7 +278,7 @@ public class Response {
 		String name=param.split("&")[0].split("=")[1];
 		this.name=name;
 		String password=param.split("&")[1].split("=")[1];
-		OperData od=new OperData();
+		OperData od=new OperData(cp);
 		if(od.authenticate(name, password)) {
 			enableSession=true;
 			if(destination!=null) {
@@ -309,6 +330,13 @@ public class Response {
 		catch(Exception e) {
 			e.printStackTrace();
 		}
+	}
+	
+	public static String getDate() {
+		Calendar cal = Calendar.getInstance();
+        // Locale.US用于将日期区域格式设为美国（英国也可以）。缺省改参数的话默认为机器设置，如中文系统星期将显示为汉子“星期六”
+        SimpleDateFormat greenwichDate = new SimpleDateFormat("EEE, d MMM yyyy HH:mm:ss 'GMT'", Locale.US);
+        return greenwichDate.format(cal.getTime());        
 	}
 	
 }
