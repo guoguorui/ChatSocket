@@ -22,7 +22,7 @@ public class Request {
 		int ch=0;
 		StringBuffer sb = new StringBuffer();	
 		//可能是由缓存机制引起的空socket
-		if(line==null) {
+		if(line==null || line.contains("router") || line.contains("webnoauth")) {
 			//System.out.println("哥，这里有人是null");
 			return "";
 		}	
@@ -42,6 +42,7 @@ public class Request {
 	            			keyLine=line.substring(line.indexOf("Key") + 4, line.length()).trim();
 	            			websocket=true;
 	            		}
+	            		
 	            		/*
 	            		if(line.contains("Cache-Control") && path.contains("static")) {
 	            			System.out.println(path+"/Cache-Control");

@@ -17,7 +17,7 @@ public class ConnectPool {
 	private static String driverClass="com.mysql.jdbc.Driver";
     private int initSize = 5;
     private int maxSize = 50;
-    
+    private LinkedList<OperData> blockedOd=new LinkedList<OperData>();    
     private LinkedList<Connection> connList = new LinkedList<Connection>();
     //是指创建的Conneciton，无论是否被获取，或者是否归还
     private int currentsize = 0;
@@ -38,13 +38,14 @@ public class ConnectPool {
         }
     }
     
-    public Connection getConnFromPool()
+    //避免多个线程几乎同时通过if，而先进的又未进行操作
+    public synchronized Connection getConnFromPool(OperData od)
     {
         //当连接池还没空
         if(connList.size()>0){
             Connection connection = connList.getFirst();
             connList.removeFirst();
-            System.out.println("if-getConnFromPool后: 连接池剩下的Connection:"+connList.size());
+            //System.out.println(Thread.currentThread().getName()+" if-getConnFromPool后: 连接池剩下的Connection:"+connList.size());
             return connection;
         
         }else if(connList.size()==0 && currentsize<maxSize){
@@ -53,11 +54,20 @@ public class ConnectPool {
             connList.addLast(this.getConnection());   
             Connection connection = connList.getFirst();
             connList.removeFirst();
-            System.out.println("else if-getConnFromPool后: 连接池剩下的Connection:"+connList.size());
+            //System.out.println(Thread.currentThread().getName()+" else if-getConnFromPool后: 连接池剩下的Connection:"+connList.size());
             return connection;        
         }
         else {
-        	throw new RuntimeException("连接数达到上限，请等待");
+        	//throw new RuntimeException("连接数达到上限，请等待");
+        	blockedOd.add(od);
+        	synchronized(od) {
+        		try {
+					od.wait();
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
+        		return getConnFromPool(od);
+        	}
         }
         
     }
@@ -80,19 +90,17 @@ public class ConnectPool {
                 @Override
                 public Object invoke(Object proxy, Method method, Object[] args)
                         throws Throwable {
-                    Object value = null;
-                    
+                    Object value = null;                  
                     //当遇到close方法，就会把对象放回连接池中，而不是关闭连接
                     if(method.getName().equals("close"))
                     {
                         //connList.addLast(conn);
                     	//将代理的对象回收，而不是原始的JDBC4Connection
-                    	connList.addLast((Connection)proxy);
-                        System.out.println("close后: 连接池剩下的Connection:"+connList.size());
+                    	listAddLast((Connection)proxy);
+                        //System.out.println(Thread.currentThread().getName()+" close后: 连接池剩下的Connection:"+connList.size());
                     }else
                     {
                         //其它方法不变
-    
                         value = method.invoke(conn, args);
                     }
                     return value;
@@ -103,6 +111,29 @@ public class ConnectPool {
             e.printStackTrace();
             throw new RuntimeException(e);
         }
+    }
+    
+    public void listAddLast(Connection conn) {
+    	connList.addLast(conn);
+    	int bloLength=blockedOd.size();
+    	if(bloLength>0) {
+    		int connLength=connList.size();
+        	int processLength=0;
+        	if(connLength>=bloLength) {
+        		processLength=bloLength;
+        	}
+        	else {
+        		processLength=connLength;
+        	}
+        	
+        	for(int i=0;i<processLength;i++) {
+    			OperData od=blockedOd.get(0);
+    			synchronized(od) {
+    				od.notify();
+    			}
+    			blockedOd.remove(0);
+    		}
+    	} 	
     }
     
 }

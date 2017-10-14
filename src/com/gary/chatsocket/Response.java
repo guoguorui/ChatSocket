@@ -47,7 +47,7 @@ public class Response {
 	public void doSent(String path) throws Exception {
 		
 		//僵尸socket处理
-		if(path.equals("") || path.contains("router")) {
+		if(path.equals("")) {
 			pw.write(header+"\r\nSorry, please refresh.\n");
 			pw.close();
 			return;

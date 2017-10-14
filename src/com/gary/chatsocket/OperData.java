@@ -10,7 +10,7 @@ public class OperData {
 	 
 	 public OperData(ConnectPool cp) {
 		 	try {
-		        conn = cp.getConnFromPool();
+		        conn = cp.getConnFromPool(this);
 		        stmt = conn.createStatement();
 		    }
 		   catch(Exception e) {
@@ -27,7 +27,6 @@ public class OperData {
 				 name = rs.getString("name");
 		     }
 			 cleanClose();
-			 //fateClose();
 		}
 	    catch(Exception e) {
 		    e.printStackTrace();
@@ -81,11 +80,5 @@ public class OperData {
 		      }catch(SQLException se2){
 		      }
 		   }//end try
-	   }
-	   
-	   public void fateClose() throws SQLException {
-		   rs.close();
-	       stmt.close();
-	       conn.close(); 
 	   }
 }

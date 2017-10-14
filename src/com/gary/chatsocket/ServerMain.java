@@ -17,7 +17,8 @@ import java.net.Socket;
 //实现orm
 //处理不在线
 //性能调优
-//数据库连接优化，做好连接池阻塞，处理好高频点击安全
+//搞定缓存
+//连接池满了阻塞处理
 public class ServerMain {
 
 	public static void main(String[] args) throws IOException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, ClassNotFoundException, InstantiationException, NoSuchMethodException, SecurityException, CloneNotSupportedException {
