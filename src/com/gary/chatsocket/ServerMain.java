@@ -8,6 +8,9 @@ import java.io.PrintWriter;
 import java.lang.reflect.InvocationTargetException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 
 //支持post的multipart
@@ -18,16 +21,16 @@ import java.net.Socket;
 //处理不在线
 //性能调优
 //搞定缓存
-//连接池满了阻塞处理
 public class ServerMain {
 
 	public static void main(String[] args) throws IOException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, ClassNotFoundException, InstantiationException, NoSuchMethodException, SecurityException, CloneNotSupportedException {
-
+		ThreadPoolExecutor executor = new ThreadPoolExecutor(10, 50, 60, TimeUnit.SECONDS,
+                 new LinkedBlockingQueue<Runnable>());
 		ServerSocket serverSocket =new ServerSocket(80);
 		try {
 		while(true) {
 			Socket client=serverSocket.accept();
-			exceService(client);
+			exceService(executor,client);
 		}
 		}
 		catch(Exception e) {
@@ -39,8 +42,8 @@ public class ServerMain {
 		
 	}
 		
-	public static void exceService(final Socket client) {
-		new Thread(new Runnable() {
+	public static void exceService(ThreadPoolExecutor executor,final Socket client) {
+		Thread r=new Thread(new Runnable() {
 			@Override
 			public void run() {
 				try {
@@ -55,6 +58,7 @@ public class ServerMain {
 				}
 			}
 			
-		}).start();;
+		});
+		executor.execute(r);
 	}
 }
