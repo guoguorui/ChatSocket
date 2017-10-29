@@ -53,7 +53,7 @@ public class ServerMain {
 					BufferedReader br=new BufferedReader(new InputStreamReader(client.getInputStream()));
 			        PrintWriter pw=new PrintWriter(client.getOutputStream());
 					Response sent=new Response(pw,client);
-			        sent.doSent(new Request(br).getPath(client));
+			        sent.doSent(new Request(br));
 				}
 				catch(Exception e) {
 					e.printStackTrace();

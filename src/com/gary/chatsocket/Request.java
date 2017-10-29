@@ -3,22 +3,23 @@ package com.gary.chatsocket;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.net.Socket;
+import java.util.HashMap;
 
 
 
 public class Request {
 	BufferedReader br;
+	HashMap<String,String> requestHeader=new HashMap<String,String>();
+	public HashMap<String, String> getRequestHeader() {
+		return requestHeader;
+	}
 	public Request(BufferedReader br) throws IOException {
 		this.br=br;
 	}
 	//不同浏览器，提交的header不完全相同
 	public String getPath(Socket client) throws IOException {
-		boolean cookie=false;
-		boolean websocket=false;
 		String line = br.readLine();   
 		String path="";
-		String cookieName="";
-		String keyLine="";
 		int ch=0;
 		StringBuffer sb = new StringBuffer();	
 		//可能是由缓存机制引起的空socket
@@ -33,32 +34,15 @@ public class Request {
             	path=line.split(" ")[1];         	
 	            while((line=br.readLine())!=null) {
 	            	if(!line.equals("")) {
-	            		//System.out.println(line);
-	            		if(line.contains("Cookie")) {
-	             			cookieName=line.split("=")[1].substring(0, 3);
-	     	            	cookie=true;
-	             		}
-	            		if(line.contains("Sec-WebSocket-Key")) {
-	            			keyLine=line.substring(line.indexOf("Key") + 4, line.length()).trim();
-	            			websocket=true;
-	            		}
-	            		
-	            		/*
-	            		if(line.contains("Cache-Control") && path.contains("static")) {
-	            			System.out.println(path+"/Cache-Control");
-	            			return path+"/Cache-Control";
-	            		}
-	            		*/
+	            		String[] header=line.split(": ");
+	            		requestHeader.put(header[0], header[1]);
+	            		//System.out.println(line);      		
 	            	}            	
 	            	else {
 	            		break;    		
 	            	}
 	            }
 			//System.out.println("out of while");
-			if(cookie)
-				path+="*"+cookieName;
-			if(websocket) 
-				path+="$"+keyLine;
 			System.out.println(path);
 			//response之前无法关闭输入流
 			return path;
@@ -80,7 +64,6 @@ public class Request {
          		break;    		
          	}
          }
-		System.out.println("out of post");
         int num=Integer.parseInt(temp);
         ch=br.read();
         ch=br.read();

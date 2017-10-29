@@ -13,6 +13,7 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Locale;
+import java.util.Set;
 
 
 //html不能在脚本间用注释//
@@ -32,41 +33,37 @@ public class Response {
 	String filename=System.getProperty("user.dir")+"\\resource\\";
 	static String destination;
 	static String date=getDate();
-	static String statusLine="HTTP/1.1 200 OK\r\n";
-	static String responseHeader="Server:ChatSocket\r\n"
-    		+ "Content-Type:text/html\r\n"
-    		+ "Connection:keep-alive\r\n"
-    		+ "Date:"+date+"\r\n";
-	static String header=statusLine+responseHeader;
-	static String gzipHeader=header+"Content-Encoding: gzip\r\n";
+	HashMap<String,String> responseHeader=new HashMap<String,String>();
 	public Response(PrintWriter pw,Socket client) throws IOException {
 		this.pw=pw;
 		this.client=client;
+		responseHeader.put("Server", "ChatSocket");
+		responseHeader.put("Content-Type", "text/html");
+		responseHeader.put("Connection", "keep-alive");
+		responseHeader.put("Date", date);
 	}
 	
-	public void doSent(String path) throws Exception {
+	public void doSent(Request request) throws Exception {
+		String path=request.getPath(client);
+		HashMap<String,String> requestHeader=request.getRequestHeader();
 		
 		//僵尸socket处理
 		if(path.equals("")) {
-			pw.write(header+"\r\nSorry, please refresh.\n");
+			pw.write(assembleHeader());
+			pw.write("Sorry, please refresh.\n");
 			pw.close();
 			return;
 		}
-		
-		/*
-		//大概是经过了304的错误repsonse，firefox浏览器不再轻易缓存
-		//资源更新验证
-		if(path.contains("Cache-Control")) {
-			pw.write("HTTP/1.1 304 Not Modified\r\n"+responseHeader+"Content-Encoding: gzip\r\n\r\n");
-			pw.close();
-			return;
+			
+		//cookie处理
+		if(requestHeader.containsKey("Cookie")) {
+			name=requestHeader.get("Cookie").split("=")[1].substring(0, 3);
+         	cookie=true;
 		}
-		*/
 		
 		//websocket处理
-		if(path.contains("$")) {
-			WebSocket ws=new WebSocket(path.split("\\$")[1],pw,client);
-			name=path.substring(2, 5);
+		if(requestHeader.containsKey("Sec-WebSocket-Key")) {
+			WebSocket ws=new WebSocket(requestHeader.get("Sec-WebSocket-Key"),pw,client);
 			nameToSocket.put(name,client);
 			ws.connect();
 			new ReadThread(client).start();
@@ -74,14 +71,6 @@ public class Response {
 			//pw不能在这里close，这个socket要手动升级为websocket
 			return;
 		}
-		
-		//cookie处理
-		if(path.contains("*")) {
-			//因为是正则，所以需要转义
-			name=path.split("\\*")[1];
-			path=path.split("\\*")[0];
-			cookie=true;
-		}		
 		
 		//路径替换处理
 		if(path.equals("/")) {
@@ -97,13 +86,13 @@ public class Response {
 			path="static/favicon.ico";
 		}
 		
-		//压缩处理
+		//压缩测试
 		//不传输length也没毛病
 		if(path.contains("testgzip")){
 			OutputStream os=client.getOutputStream();
 			byte[]  hb=GZip.compressString("hello");
-			String headg=header+"Content-Encoding: gzip\r\n\r\n";
-			os.write(headg.getBytes());
+			responseHeader.put("Content-Encoding", "gzip");
+			os.write(assembleHeader().getBytes());
 			os.write(hb);
 			os.flush();
 			os.close();
@@ -176,36 +165,23 @@ public class Response {
 			sb.append(temp);
 		}
 		temp=sb.toString();
-		//temp=GzipContent.compress(temp);
 		if(destination!=null && !cookie && enableSession) {
-			//pw.write(header+ "Set-Cookie: JSESSIONID="+name+"023EE23711E1FEB5F792CFD9752F9F79;path=/;HttpOnly\r\n\r\n"
-		    //		     +temp+"\n");
-			compress(gzipHeader+"Set-Cookie: JSESSIONID="+name+"023EE23711E1FEB5F792CFD9752F9F79;path=/;HttpOnly\r\n\r\n",temp);
+			responseHeader.put("Content-Encoding", "gzip");
+			responseHeader.put("Set-Cookie","JSESSIONID="+name+"023EE23711E1FEB5F792CFD9752F9F79;path=/;HttpOnly");
+			compress(assembleHeader(),temp);
 		}
 		else {
-			//pw.write(header+"\r\n"+temp+"\n");;
-			compress(gzipHeader+"\r\n",temp);
+			responseHeader.put("Content-Encoding", "gzip");
+			compress(assembleHeader(),temp);
 		}
-		//br.close();
-		//pw.close();
 	}
 	
 	public void directStatic(String path) throws IOException {
 		path=path.replaceAll("/", "\\\\");
 		String staticName=filename+path;
-		String cache=statusLine
-				   +"Server:ChatSocket\r\n"
-				   //+ "Content-Encoding:gzip\r\n"
-				   + "Age:25205862\r\n"
-				   + "Cache-Control:max-age=5184000\r\n"
-				   + "Last-Modified:Thu, 28 Sep 2017 07:43:37 GMT\r\n"
-				   + "Date:"+date+"\r\n"
-				   + "Accept-Ranges: bytes\r\n"
-				   + "Vary: Accept-Encoding,User-Agent\r\n"
-				   + "Ohc-Response-Time: 1 0 0 0 0 0\r\n"
-				   + "Connection: keep-alive\r\n"
-				   + "ETag: \"16e36-540b1498e39c0\"\r\n"
-				   + "Expires: Fri, 08 Dec 2017 03:35:31 GMT\r\n";
+		responseHeader.put("Cache-Control", "max-age=5184000");
+		responseHeader.put("Last-Modified", "Thu, 28 Sep 2017 07:43:37 GMT");
+		responseHeader.put("Expires", "Fri, 08 Dec 2017 03:35:31 GMT");
 		//图片需要用字节数组传输
 		if(!path.contains(".jpg") && !path.contains(".ico")) {
 		br=new BufferedReader(new FileReader(staticName));
@@ -215,24 +191,17 @@ public class Response {
 			sb.append(temp);
 		}
 		temp=sb.toString();
-		//cache no for firefox but work with chrome
-		//pw.write(cache
-		//		+ "Content-Type=text/css\r\n"
-		//		+ "\r\n");
-		//pw.write(temp);
-		//br.close();
-		compress(cache
-				+ "Content-Encoding:gzip\r\n"
-				+ "Content-Type=text/css\r\n"
-				+ "\r\n",temp);
+		responseHeader.put("Content-Encoding", "gzip");
+		//难道以前是这个鬼玩意输错了？
+		responseHeader.put("Content-Type", "text/css");
+		compress(assembleHeader(),temp);
 		}
+		
 		else {
 			//似乎在chrome只能cache from memory不能是disk
 			OutputStream os=client.getOutputStream();
-			String sta=cache
-					+ "Content-Type=image/*\r\n"
-					+ "\r\n";
-			os.write(sta.getBytes());
+			responseHeader.put("Content-Type", "image/*");
+			os.write(assembleHeader().getBytes());
 			os.flush();
 			FileInputStream fis=new FileInputStream(new File(staticName));
 			int length;
@@ -244,7 +213,6 @@ public class Response {
 			fis.close();
 			pw.close();
 		}	
-		//pw.close();
 	}
 	
 	public void doAjax() {
@@ -289,7 +257,7 @@ public class Response {
 				directView("index");
 		}
 		else {
-			pw.write(header+"\r\nsorry invalid account.\n");
+			pw.write(assembleHeader()+"sorry invalid account.\n");
 			pw.close();
 		}
 	}
@@ -334,9 +302,19 @@ public class Response {
 	
 	public static String getDate() {
 		Calendar cal = Calendar.getInstance();
-        // Locale.US用于将日期区域格式设为美国（英国也可以）。缺省改参数的话默认为机器设置，如中文系统星期将显示为汉子“星期六”
         SimpleDateFormat greenwichDate = new SimpleDateFormat("EEE, d MMM yyyy HH:mm:ss 'GMT'", Locale.US);
         return greenwichDate.format(cal.getTime());        
+	}
+	
+	public String assembleHeader() {
+		StringBuilder sb=new StringBuilder();
+		sb.append("HTTP/1.1 200 OK\r\n");
+		Set<String> keys=responseHeader.keySet();
+		for(String key:keys) {
+			sb.append(key+": "+responseHeader.get(key)+"\r\n");
+		}
+		sb.append("\r\n");
+		return sb.toString();
 	}
 	
 }
