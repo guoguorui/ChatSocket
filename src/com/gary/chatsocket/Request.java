@@ -74,7 +74,7 @@ public class Request {
 		   num--;
 	    }
 	    //System.out.println("out of post");
-	    System.out.println(path+"?"+sb.toString());
+	    System.out.println(path+"?na"+sb.toString());
         return path+"?"+sb.toString();
 	}
 	

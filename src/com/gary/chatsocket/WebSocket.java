@@ -10,12 +10,16 @@ import java.net.Socket;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 import java.security.MessageDigest;
+import java.util.HashMap;
 
 public class WebSocket {
 	
 	String key;
 	PrintWriter pw;
 	Socket client;
+	static HashMap<String,Socket> nameToSocket=new HashMap<String,Socket>();
+	static HashMap<String,String> nameToFriend=new HashMap<String,String>();
+	
 	public WebSocket(String key,PrintWriter pw,Socket client) throws IOException {
 		this.key=key;
 		this.pw=pw;
@@ -59,6 +63,30 @@ public class WebSocket {
 			e.printStackTrace();
 		}
 		System.out.println(res);
+	}
+	
+	public static void mass(String message) {
+		for(String name:nameToSocket.keySet()) {
+			Socket client=nameToSocket.get(name);
+			if(client.isClosed())
+				nameToSocket.remove(name);
+			else
+				new WriteThread(client,message).start();
+		}
+	}
+	
+	public static void chatToOne(String name,String message) {
+		String friend=nameToFriend.get(name);
+		Socket friendClient=nameToSocket.get(friend);
+		Socket localClient=nameToSocket.get(name);
+		if(friendClient.isClosed())
+			nameToSocket.remove(name);
+		else {
+			new WriteThread(localClient,message).start();
+			new WriteThread(friendClient,message).start();
+			
+		}
+			
 	}
 	
 }
@@ -204,8 +232,8 @@ class ReadThread extends Thread{
 	        int readThisFragment = 1;
 	        ByteBuffer byteBuf = ByteBuffer.allocate(payloadLength + 25);
 	        String name="";
-	        for(String getKey: Response.nameToSocket.keySet()){  
-	        	   if(Response.nameToSocket.get(getKey).equals(client)){  
+	        for(String getKey: WebSocket.nameToSocket.keySet()){  
+	        	   if(WebSocket.nameToSocket.get(getKey).equals(client)){  
 	        	             name = getKey;  
 	               }
 	        }
@@ -230,7 +258,7 @@ class ReadThread extends Thread{
 	        WebSocket.printRes(byteBuf.array());
 	        String message=new String(byteBuf.array());
 	        //Response.mass(message);
-	        Response.chatToOne(name,message);
+	        WebSocket.chatToOne(name,message);
 	    }
 	}
 	catch(Exception e) {

@@ -52,7 +52,7 @@ public class ServerMain {
 					//System.out.println("\n"+ client.getInetAddress() + ":" + client.getPort());
 					BufferedReader br=new BufferedReader(new InputStreamReader(client.getInputStream()));
 			        PrintWriter pw=new PrintWriter(client.getOutputStream());
-					Response sent=new Response(pw,client);
+					Controller sent=new Controller(pw,client);
 			        sent.doSent(new Request(br));
 				}
 				catch(Exception e) {
