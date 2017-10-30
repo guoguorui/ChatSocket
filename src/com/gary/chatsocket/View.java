@@ -113,17 +113,6 @@ public class View {
 		}	
 	}
 	
-	public void doSafe(String path) throws IOException {
-		System.out.println("into doSafe");
-		if(cookie) {
-			directView(path);
-		}
-		else {
-			directView("login");
-		}
-		return;
-	}
-	
 	public void gzipTest() {
 		try {
 		OutputStream os=client.getOutputStream();

@@ -44,22 +44,6 @@ public class PreProcess {
          	view.setCookie(true);
 		}
 		
-		
-		//websocket处理
-		if(requestHeader.containsKey("Sec-WebSocket-Key")) {
-			WebSocket ws=null;
-			try {
-				ws = new WebSocket(requestHeader.get("Sec-WebSocket-Key"),pw,client);
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
-			WebSocket.nameToSocket.put(view.name,client);
-			ws.connect();
-			new ReadThread(client).start();
-			//sb才不return
-			//pw不能在这里close，这个socket要手动升级为websocket
-		}
-		
 		return path;
 	}
 }

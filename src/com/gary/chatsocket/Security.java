@@ -1,14 +1,13 @@
 package com.gary.chatsocket;
 
 import java.io.IOException;
+import java.io.PrintWriter;
 
 public class Security {
-	boolean cookie=false;
-	boolean enableSession=false;
-	//String name="BALALA";
+	
 	static ConnectPool cp=Ajax.cp;
 
-	public static boolean doProcessLogin(String path,View view) throws IOException {
+	public static void doProcessLogin(String path,View view,PrintWriter pw) throws IOException {
 		String param=path.split("\\?")[1];
 		String name=param.split("&")[0].split("=")[1];
 		String password=param.split("&")[1].split("=")[1];
@@ -17,8 +16,21 @@ public class Security {
 			view.setName(name);
 			view.setEnableSession(true);
 			view.directView("chatwho");
-			return true;
 		}
-		return false;
+		else {
+			pw.write("sorry invalid account.\n");
+			pw.close();
+		}
+	}
+	
+	public static void doSafe(String path,View view) throws IOException {
+		System.out.println("into doSafe");
+		if(view.cookie) {
+			view.directView(path);
+		}
+		else {
+			view.directView("login");
+		}
+		return;
 	}
 }

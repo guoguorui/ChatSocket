@@ -79,14 +79,37 @@ public class WebSocket {
 		String friend=nameToFriend.get(name);
 		Socket friendClient=nameToSocket.get(friend);
 		Socket localClient=nameToSocket.get(name);
-		if(friendClient.isClosed())
+		if(friendClient.isClosed()) {
 			nameToSocket.remove(name);
+			nameToFriend.remove(name);
+		}
 		else {
 			new WriteThread(localClient,message).start();
 			new WriteThread(friendClient,message).start();
-			
+		}		
+	}
+	
+	public static void processRelationship(String path,View view) {
+		String friend=path.split("=")[1];
+		WebSocket.nameToFriend.put(view.name, friend);
+		view.setFriend(friend);
+		try {
+			view.directView("wschat");
+		} catch (IOException e) {
+			e.printStackTrace();
 		}
-			
+	}
+	
+	public static void processRead(String key,PrintWriter pw,Socket client,View view) {
+		WebSocket ws=null;
+		try {
+			ws = new WebSocket(key,pw,client);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		WebSocket.nameToSocket.put(view.name,client);
+		ws.connect();
+		new ReadThread(client).start();
 	}
 	
 }

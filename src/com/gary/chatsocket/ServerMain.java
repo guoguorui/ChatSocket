@@ -23,6 +23,7 @@ import java.util.concurrent.TimeUnit;
 //搞定缓存
 //提供Restful API
 //Request和Response的进一步封装
+//会话用户cookie层的进一步封装
 public class ServerMain {
 
 	public static void main(String[] args) throws IOException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, ClassNotFoundException, InstantiationException, NoSuchMethodException, SecurityException, CloneNotSupportedException {
