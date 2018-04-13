@@ -1,49 +1,50 @@
 package com.gary.chatsocket;
 
-import java.io.ByteArrayOutputStream;   
-import java.util.zip.GZIPOutputStream;   
+import java.io.ByteArrayOutputStream;
+import java.util.zip.GZIPOutputStream;
+
 // 将一个字符串按照zip方式压缩和解压缩   
-public class GZip {   
-  
- public  static byte[] compress(byte[] data) throws Exception {  
-	  
-     ByteArrayOutputStream baos = new ByteArrayOutputStream();  
+public class GZip {
 
-     // 压缩  
-     GZIPOutputStream gos = new GZIPOutputStream(baos);  
+    public static byte[] compress(byte[] data) throws Exception {
 
-     gos.write(data, 0, data.length);  
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
 
-     gos.finish();  
+        // 压缩
+        GZIPOutputStream gos = new GZIPOutputStream(baos);
 
-     byte[] output = baos.toByteArray();  
+        gos.write(data, 0, data.length);
 
-     baos.flush();  
-     baos.close();  
+        gos.finish();
 
-     return output;  
- }  
- 
- public  static byte[] compressString(String s) throws Exception {  
-	  
-     ByteArrayOutputStream baos = new ByteArrayOutputStream();  
+        byte[] output = baos.toByteArray();
 
-     // 压缩  
-     GZIPOutputStream gos = new GZIPOutputStream(baos);  
+        baos.flush();
+        baos.close();
 
-     byte[] data=s.getBytes("UTF-8");
-     
-     gos.write(data, 0, data.length);  
+        return output;
+    }
 
-     gos.finish();  
+    public static byte[] compressString(String s) throws Exception {
 
-     byte[] output = baos.toByteArray();  
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
 
-     baos.flush();  
-     baos.close();  
+        // 压缩
+        GZIPOutputStream gos = new GZIPOutputStream(baos);
 
-     return output;  
- }  
- 
- 
+        byte[] data = s.getBytes("UTF-8");
+
+        gos.write(data, 0, data.length);
+
+        gos.finish();
+
+        byte[] output = baos.toByteArray();
+
+        baos.flush();
+        baos.close();
+
+        return output;
+    }
+
+
 }  
