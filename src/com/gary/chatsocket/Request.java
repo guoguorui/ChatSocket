@@ -7,6 +7,7 @@ import java.util.HashMap;
 
 
 public class Request {
+
     private BufferedReader br;
     HashMap<String, String> requestHeader = new HashMap<String, String>();
 
@@ -26,7 +27,6 @@ public class Request {
         StringBuilder sb = new StringBuilder();
         //可能是由缓存机制引起的空socket
         if (line == null || line.contains("router") || line.contains("webnoauth")) {
-            //System.out.println("哥，这里有人是null");
             return "";
         }
 
@@ -38,17 +38,14 @@ public class Request {
                 if (!line.equals("")) {
                     String[] header = line.split(": ");
                     requestHeader.put(header[0], header[1]);
-                    //System.out.println(line);
                 } else {
                     break;
                 }
             }
-            //System.out.println("out of while");
             System.out.println(path);
             //response之前无法关闭输入流
             return path;
         }
-
         //这里是post的处理步骤
         sb.setLength(0);
         path = line.split(" ")[1];
@@ -73,7 +70,6 @@ public class Request {
             sb.append((char) ch);
             num--;
         }
-        //System.out.println("out of post");
         System.out.println(path + "?na" + sb.toString());
         return path + "?" + sb.toString();
     }

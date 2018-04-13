@@ -21,7 +21,7 @@ public class View {
     private HashMap<String, String> responseHeader = new HashMap<String, String>();
     private static String date = getDate();
     private String filename = System.getProperty("user.dir") + "\\resource\\";
-    private String name = "BALALA";
+    String name = "BALALA";
     private String friend = "CHALABLA";
 
 
@@ -78,7 +78,6 @@ public class View {
         String staticName = filename + path;
         responseHeader.put("Cache-Control", "max-age=5184000");
         responseHeader.put("Last-Modified", "Thu, 28 Sep 2017 07:43:37 GMT");
-        responseHeader.put("Expires", "Fri, 08 Dec 2017 03:35:31 GMT");
         //图片需要用字节数组传输
         if (!path.contains(".jpg") && !path.contains(".ico")) {
             br = new BufferedReader(new FileReader(staticName));
@@ -89,7 +88,6 @@ public class View {
             }
             temp = sb.toString();
             responseHeader.put("Content-Encoding", "gzip");
-            //难道以前是这个鬼玩意输错了？
             responseHeader.put("Content-Type", "text/css");
             compress(assembleHeader(), temp);
         } else {

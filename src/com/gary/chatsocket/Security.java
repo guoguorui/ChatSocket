@@ -11,7 +11,7 @@ class Security {
         String param = path.split("\\?")[1];
         String name = param.split("&")[0].split("=")[1];
         String password = param.split("&")[1].split("=")[1];
-        OperData od = new OperData(cp);
+        DAO od = new DAO(cp);
         if (od.authenticate(name, password)) {
             view.setName(name);
             view.setEnableSession(true);

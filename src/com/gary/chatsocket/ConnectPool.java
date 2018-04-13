@@ -11,10 +11,10 @@ import com.mysql.jdbc.Connection;
 
 class ConnectPool {
 
-    private LinkedList<OperData> blockedOd = new LinkedList<OperData>();
+    private LinkedList<DAO> blockedOd = new LinkedList<DAO>();
     private LinkedList<Connection> connList = new LinkedList<Connection>();
     //是指创建的Conneciton，无论是否被获取，或者是否归还
-    private int currentsize = 0;
+    private int currentSize = 0;
 
     static {
         try {
@@ -29,12 +29,12 @@ class ConnectPool {
         for (int i = 0; i < initSize; i++) {
             Connection connection = this.getConnection();
             connList.add(connection);
-            currentsize++;
+            currentSize++;
         }
     }
 
     //避免多个线程几乎同时通过if，而先进的又未进行操作
-    synchronized Connection getConnFromPool(OperData od) {
+    synchronized Connection getConnFromPool(DAO od) {
         int maxSize = 50;
         //当连接池还没空
         if (connList.size() > 0) {
@@ -42,9 +42,9 @@ class ConnectPool {
             connList.removeFirst();
             return connection;
 
-        } else if (currentsize < maxSize) {
+        } else if (currentSize < maxSize) {
             //连接池被拿空，且连接数没有达到上限，创建新的连接
-            currentsize++;
+            currentSize++;
             connList.addLast(this.getConnection());
             Connection connection = connList.getFirst();
             connList.removeFirst();
@@ -99,7 +99,7 @@ class ConnectPool {
         int bloLength = blockedOd.size();
         if (bloLength > 0) {
             int connLength = connList.size();
-            int processLength = 0;
+            int processLength;
             if (connLength >= bloLength) {
                 processLength = bloLength;
             } else {
@@ -107,7 +107,7 @@ class ConnectPool {
             }
 
             for (int i = 0; i < processLength; i++) {
-                OperData od = blockedOd.get(0);
+                DAO od = blockedOd.get(0);
                 od.notify();
                 blockedOd.remove(0);
             }

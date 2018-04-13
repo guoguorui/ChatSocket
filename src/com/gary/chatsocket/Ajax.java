@@ -19,7 +19,7 @@ class Ajax {
 
     void doJdbc() throws SQLException {
         System.out.println("into doJdbc()");
-        OperData od = new OperData(cp);
+        DAO od = new DAO(cp);
         String username = od.findName();
         pw.write(username + "\n");
         pw.close();

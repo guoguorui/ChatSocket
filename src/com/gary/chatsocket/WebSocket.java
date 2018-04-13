@@ -257,12 +257,12 @@ class ReadThread extends Thread {
                 byteBuf.put(address.getBytes("UTF-8"));
                 while (payloadLength > 0) {
                     //客户端发送的数据，根据掩码进行异或运行解码
-                /*官方伪代码
-	        	 var DECODED = "";
-					for (var i = 0; i < ENCODED.length; i++) {
-    					DECODED[i] = ENCODED[i] ^ MASK[i % 4];
-					}
-	        	 */
+                    /*官方伪代码
+                     var DECODED = "";
+                        for (var i = 0; i < ENCODED.length; i++) {
+                            DECODED[i] = ENCODED[i] ^ MASK[i % 4];
+                        }
+                     */
                     int masked = in.read();
                     masked = masked ^ (mask[(int) ((readThisFragment - 1) % 4)] & 0xFF);
                     byteBuf.put((byte) masked);

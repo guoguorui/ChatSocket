@@ -2,14 +2,14 @@ package com.gary.chatsocket;
 
 import java.sql.*;
 
-class OperData {
+class DAO {
 
     private Connection conn = null;
     private Statement stmt = null;
     private ResultSet rs = null;
     ConnectPool cp = null;
 
-    OperData(ConnectPool cp) {
+    DAO(ConnectPool cp) {
         try {
             conn = cp.getConnFromPool(this);
             stmt = conn.createStatement();

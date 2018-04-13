@@ -6,26 +6,25 @@ import java.net.Socket;
 import java.util.HashMap;
 
 //html不能在脚本间用注释//
-//重构真麻烦，还是一开始就要注意解耦好
 //使用多路复用
 //架构变成switch case
 //对cookie内容进行编码，使其含有用户信息
 
-class Controller {
+class Response {
 
     private Socket client;
     private PrintWriter pw;
     private View view;
     private Ajax ajax;
 
-    Controller(Socket client) throws IOException {
+    Response(Socket client) throws IOException {
         this.client = client;
         pw = new PrintWriter(client.getOutputStream());
         view = new View(client, pw);
         ajax = new Ajax(pw);
     }
 
-    void doSent(Request request) throws Exception {
+    void response(Request request) throws Exception {
         String path = new PreProcess(request, client, view).process();
         HashMap<String, String> requestHeader = request.requestHeader;
 

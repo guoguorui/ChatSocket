@@ -23,6 +23,7 @@ import java.util.concurrent.TimeUnit;
 //提供Restful API
 //Request和Response的进一步封装
 //会话用户cookie层的进一步封装
+//加入消息队列
 public class ServerMain {
 
     public static void main(String[] args) throws IOException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, ClassNotFoundException, InstantiationException, NoSuchMethodException, SecurityException, CloneNotSupportedException {
@@ -42,15 +43,14 @@ public class ServerMain {
 
     }
 
-    static void exceService(ThreadPoolExecutor executor, final Socket client) {
+    private static void exceService(ThreadPoolExecutor executor, final Socket client) {
         Thread r = new Thread(new Runnable() {
             @Override
             public void run() {
                 try {
-                    //System.out.println("\n"+ client.getInetAddress() + ":" + client.getPort());
                     BufferedReader br = new BufferedReader(new InputStreamReader(client.getInputStream()));
-                    Controller sent = new Controller(client);
-                    sent.doSent(new Request(br));
+                    Response sent = new Response(client);
+                    sent.response(new Request(br));
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
