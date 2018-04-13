@@ -42,7 +42,7 @@ public class ServerMain {
 
     }
 
-    public static void exceService(ThreadPoolExecutor executor, final Socket client) {
+    static void exceService(ThreadPoolExecutor executor, final Socket client) {
         Thread r = new Thread(new Runnable() {
             @Override
             public void run() {

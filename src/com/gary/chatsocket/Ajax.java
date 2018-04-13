@@ -3,21 +3,21 @@ package com.gary.chatsocket;
 import java.io.PrintWriter;
 import java.sql.SQLException;
 
-public class Ajax {
-    PrintWriter pw;
+class Ajax {
+    private PrintWriter pw;
     static ConnectPool cp = new ConnectPool();
 
-    public Ajax(PrintWriter pw) {
+    Ajax(PrintWriter pw) {
         this.pw = pw;
     }
 
-    public void doAjax() {
+    void doAjax() {
         System.out.println("into doAjax()");
         pw.write("Hello,I come from ajax\n");
         pw.close();
     }
 
-    public void doJdbc() throws SQLException {
+    void doJdbc() throws SQLException {
         System.out.println("into doJdbc()");
         OperData od = new OperData(cp);
         String username = od.findName();

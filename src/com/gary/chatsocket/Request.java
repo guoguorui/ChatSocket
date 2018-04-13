@@ -7,23 +7,23 @@ import java.util.HashMap;
 
 
 public class Request {
-    BufferedReader br;
+    private BufferedReader br;
     HashMap<String, String> requestHeader = new HashMap<String, String>();
 
     public HashMap<String, String> getRequestHeader() {
         return requestHeader;
     }
 
-    public Request(BufferedReader br) throws IOException {
+    Request(BufferedReader br) throws IOException {
         this.br = br;
     }
 
     //不同浏览器，提交的header不完全相同
-    public String getPath(Socket client) throws IOException {
+    String getPath(Socket client) throws IOException {
         String line = br.readLine();
         String path = "";
         int ch = 0;
-        StringBuffer sb = new StringBuffer();
+        StringBuilder sb = new StringBuilder();
         //可能是由缓存机制引起的空socket
         if (line == null || line.contains("router") || line.contains("webnoauth")) {
             //System.out.println("哥，这里有人是null");

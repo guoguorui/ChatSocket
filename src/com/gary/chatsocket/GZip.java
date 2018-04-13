@@ -25,7 +25,7 @@ public class GZip {
         return output;
     }
 
-    public static byte[] compressString(String s) throws Exception {
+    static byte[] compressString(String s) throws Exception {
 
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
 

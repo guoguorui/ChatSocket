@@ -15,20 +15,20 @@ import java.util.Locale;
 import java.util.Set;
 
 public class View {
-    PrintWriter pw;
-    BufferedReader br;
-    Socket client;
-    HashMap<String, String> responseHeader = new HashMap<String, String>();
-    static String date = getDate();
-    String filename = System.getProperty("user.dir") + "\\resource\\";
-    String name = "BALALA";
-    String friend = "CHALABLA";
+    private PrintWriter pw;
+    private BufferedReader br;
+    private Socket client;
+    private HashMap<String, String> responseHeader = new HashMap<String, String>();
+    private static String date = getDate();
+    private String filename = System.getProperty("user.dir") + "\\resource\\";
+    private String name = "BALALA";
+    private String friend = "CHALABLA";
 
 
-    boolean enableSession = false;
+    private boolean enableSession = false;
     boolean cookie = false;
 
-    public View(Socket client, PrintWriter pw) {
+    View(Socket client, PrintWriter pw) {
         this.pw = pw;
         this.client = client;
         responseHeader.put("Server", "ChatSocket");
@@ -37,14 +37,14 @@ public class View {
         responseHeader.put("Date", date);
     }
 
-    public static String getDate() {
+    private static String getDate() {
         Calendar cal = Calendar.getInstance();
         SimpleDateFormat greenwichDate = new SimpleDateFormat("EEE, d MMM yyyy HH:mm:ss 'GMT'", Locale.US);
         return greenwichDate.format(cal.getTime());
     }
 
     //根据name设置friend并在页面进行替换，如果刚登陆，还要给出cookie
-    public void directView(String path) throws IOException {
+    void directView(String path) throws IOException {
         filename += path + ".html";
         br = new BufferedReader(new FileReader(filename));
         StringBuilder sb = new StringBuilder();
@@ -73,7 +73,7 @@ public class View {
     }
 
 
-    public void directStatic(String path) throws IOException {
+    void directStatic(String path) throws IOException {
         path = path.replaceAll("/", "\\\\");
         String staticName = filename + path;
         responseHeader.put("Cache-Control", "max-age=5184000");
@@ -110,7 +110,7 @@ public class View {
         }
     }
 
-    public void gzipTest() {
+    void gzipTest() {
         try {
             OutputStream os = client.getOutputStream();
             byte[] hb = GZip.compressString("hello");
@@ -124,19 +124,19 @@ public class View {
         }
     }
 
-    public void setEnableSession(boolean enableSession) {
+    void setEnableSession(boolean enableSession) {
         this.enableSession = enableSession;
     }
 
-    public void setName(String name) {
+    void setName(String name) {
         this.name = name;
     }
 
-    public void setFriend(String friend) {
+    void setFriend(String friend) {
         this.friend = friend;
     }
 
-    public void setCookie(boolean cookie) {
+    void setCookie(boolean cookie) {
         this.cookie = cookie;
     }
 
@@ -144,18 +144,21 @@ public class View {
         return this.cookie;
     }
 
-    public String assembleHeader() {
+    private String assembleHeader() {
         StringBuilder sb = new StringBuilder();
         sb.append("HTTP/1.1 200 OK\r\n");
         Set<String> keys = responseHeader.keySet();
         for (String key : keys) {
-            sb.append(key + ": " + responseHeader.get(key) + "\r\n");
+            sb.append(key);
+            sb.append(": ");
+            sb.append(responseHeader.get(key));
+            sb.append("\r\n");
         }
         sb.append("\r\n");
         return sb.toString();
     }
 
-    public void compress(String header, String content) {
+    private void compress(String header, String content) {
         try {
             OutputStream os = client.getOutputStream();
             byte[] csb = GZip.compressString(content);

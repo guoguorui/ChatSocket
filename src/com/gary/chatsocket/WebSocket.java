@@ -14,19 +14,17 @@ import java.util.HashMap;
 
 public class WebSocket {
 
-    String key;
-    PrintWriter pw;
-    Socket client;
+    private String key;
+    private PrintWriter pw;
     static HashMap<String, Socket> nameToSocket = new HashMap<String, Socket>();
-    static HashMap<String, String> nameToFriend = new HashMap<String, String>();
+    private static HashMap<String, String> nameToFriend = new HashMap<String, String>();
 
     public WebSocket(String key, PrintWriter pw, Socket client) throws IOException {
         this.key = key;
         this.pw = pw;
-        this.client = client;
     }
 
-    public void connect() {
+    private void connect() {
         try {
             key += "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
             MessageDigest md = MessageDigest.getInstance("SHA-1");
@@ -48,20 +46,20 @@ public class WebSocket {
 
 
     //控制台输出
-    public static void printRes(byte[] array) {
+    static void printRes(byte[] array) {
         Charset charset = Charset.forName("UTF-8");
         ByteArrayInputStream byteIn = new ByteArrayInputStream(array);
         InputStreamReader reader = new InputStreamReader(byteIn, charset.newDecoder());
         int b = 0;
-        String res = "";
+        StringBuilder res = new StringBuilder();
         try {
             while ((b = reader.read()) > 0) {
-                res += (char) b;
+                res.append(b);
             }
         } catch (IOException e) {
             e.printStackTrace();
         }
-        System.out.println(res);
+        System.out.println(res.toString());
     }
 
     public static void mass(String message) {
@@ -74,7 +72,7 @@ public class WebSocket {
         }
     }
 
-    public static void chatToOne(String name, String message) {
+    static void chatToOne(String name, String message) {
         String friend = nameToFriend.get(name);
         Socket friendClient = nameToSocket.get(friend);
         Socket localClient = nameToSocket.get(name);
@@ -87,7 +85,7 @@ public class WebSocket {
         }
     }
 
-    public static void processRelationship(String path, View view) {
+    static void processRelationship(String path, View view) {
         String friend = path.split("=")[1];
         WebSocket.nameToFriend.put(view.name, friend);
         view.setFriend(friend);
@@ -98,26 +96,26 @@ public class WebSocket {
         }
     }
 
-    public static void processRead(String key, PrintWriter pw, Socket client, View view) {
+    static void processRead(String key, PrintWriter pw, Socket client, View view) {
         WebSocket ws = null;
         try {
             ws = new WebSocket(key, pw, client);
+            WebSocket.nameToSocket.put(view.name, client);
+            ws.connect();
+            new ReadThread(client).start();
         } catch (IOException e) {
             e.printStackTrace();
         }
-        WebSocket.nameToSocket.put(view.name, client);
-        ws.connect();
-        new ReadThread(client).start();
     }
 
 }
 
 //要extends不要runnable，贼傻逼，搞得一个read()阻塞了
 class WriteThread extends Thread {
-    Socket client;
-    ByteBuffer byteBuf;
+    private Socket client;
+    private ByteBuffer byteBuf;
 
-    public WriteThread(Socket client, String message) {
+    WriteThread(Socket client, String message) {
         byteBuf = ByteBuffer.wrap(message.getBytes());
         this.client = client;
     }
@@ -168,10 +166,10 @@ class WriteThread extends Thread {
 }
 
 class ReadThread extends Thread {
-    InputStream in;
-    Socket client;
+    private InputStream in;
+    private Socket client;
 
-    public ReadThread(Socket client) {
+    ReadThread(Socket client) {
         try {
             this.client = client;
             in = client.getInputStream();
@@ -209,8 +207,6 @@ class ReadThread extends Thread {
             int read;
             while ((read = in.read(first, 0, 1)) > 0) {
                 //int read = in.read(first, 0, 1);
-                if (read < 0)
-                    return;
                 //清除高位
                 int b = first[0] & 0xFF;
                 //1为字符数据，8为关闭socket
@@ -261,7 +257,7 @@ class ReadThread extends Thread {
                 byteBuf.put(address.getBytes("UTF-8"));
                 while (payloadLength > 0) {
                     //客户端发送的数据，根据掩码进行异或运行解码
-	        	/*官方伪代码
+                /*官方伪代码
 	        	 var DECODED = "";
 					for (var i = 0; i < ENCODED.length; i++) {
     					DECODED[i] = ENCODED[i] ^ MASK[i % 4];

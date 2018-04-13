@@ -4,12 +4,12 @@ import java.io.IOException;
 import java.net.Socket;
 import java.util.HashMap;
 
-public class PreProcess {
-    String path;
-    View view;
-    HashMap<String, String> requestHeader;
+class PreProcess {
+    private String path;
+    private View view;
+    private HashMap<String, String> requestHeader;
 
-    public PreProcess(Request request, Socket client, View view) {
+    PreProcess(Request request, Socket client, View view) {
         try {
             this.path = request.getPath(client);
             this.view = view;
@@ -19,7 +19,7 @@ public class PreProcess {
         }
     }
 
-    public String process() {
+    String process() {
         if (path.equals("/")) {
             path = "index";
         } else if (!path.equals("")) {
