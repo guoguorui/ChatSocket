@@ -65,7 +65,7 @@ class ConnectPool {
     private Connection getConnection() {
         String url = "jdbc:mysql://localhost/test";
         String user = "root";
-        String password = "";
+        String password = "234";
         try {
             final Connection conn = (Connection) DriverManager.getConnection(url, user, password);
             return (Connection) Proxy.newProxyInstance(

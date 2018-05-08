@@ -40,7 +40,8 @@ class DAO {
         try {
             rs = stmt.executeQuery(sql);
             while (rs.next()) {
-                if (rs.getString("password").equals(password)) {
+                String encryptPassword=MD5Util.encrypt(password);
+                if (rs.getString("password").equals(encryptPassword)) {
                     flag = true;
                 }
             }
