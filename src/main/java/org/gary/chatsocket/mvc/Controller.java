@@ -10,6 +10,7 @@ import java.util.HashMap;
 //使用多路复用
 //对cookie内容进行编码，使其含有用户信息
 //使用阻塞队列重构连接池
+//model具体化
 
 public class Controller {
 
@@ -51,13 +52,13 @@ public class Controller {
 
         //选择聊天对象前进行登录拦截
         if (path.contains("chatwho")) {
-            Security.doSafe(path, requestHeader.get("Cookie"),view);
+            Security.intercept(path, requestHeader.get("Cookie"),view);
             System.out.println("");
         }
 
         //验证用户名和密码
         else if (path.contains("processLogin")) {
-            Security.doProcessLogin(path, view, os);
+            Security.verification(path, view, os);
             System.out.println("");
         }
 

@@ -28,7 +28,6 @@ public class View {
     //根据name设置friend并在页面进行替换，如果刚登陆，还要给出cookie
     public void directView(String path) throws IOException {
         if (!cookie && enableSession){
-            //responseHeader.put("Set-Cookie", "JSESSIONID=" + name + "023EE23711E1FEB5F792CFD9752F9F79;path=/;HttpOnly");
             responseHeader.put("Set-Cookie",token);
             cookie=true;
         }

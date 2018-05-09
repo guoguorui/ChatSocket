@@ -1,5 +1,6 @@
 package org.gary.chatsocket.security;
 
+import org.gary.chatsocket.dao.CacheCookie;
 import org.gary.chatsocket.dao.ConnectPool;
 import org.gary.chatsocket.dao.DAO;
 import org.gary.chatsocket.mvc.Ajax;
@@ -13,7 +14,7 @@ public class Security {
 
     private static ConnectPool cp = Ajax.cp;
 
-    public static void doProcessLogin(String path, View view, OutputStream os) throws IOException {
+    public static void verification(String path, View view, OutputStream os) throws IOException {
         String param = path.split("\\?")[1];
         String name = param.split("&")[0].split("=")[1];
         String password = param.split("&")[1].split("=")[1];
@@ -23,19 +24,18 @@ public class Security {
             view.setToken(token);
             view.setName(name);
             view.setEnableSession(true);
+            CacheCookie.addCookie(token);
             view.directView("chatwho");
         } else {
             os.write("sorry invalid account.\n".getBytes());
         }
     }
 
-    public static void doSafe(String path, String cookie,View view) throws IOException {
-        System.out.println("into doSafe");
-        //暂时省去cookie与redis缓存的验证
-        if (cookie!=null) {
+    public static void intercept(String path, String cookie, View view) throws IOException {
+        System.out.println("into intercept");
+        if (cookie!=null && CacheCookie.judgeCookie(cookie)) {
             view.setName(cookie.substring(0,cookie.indexOf('=')));
             view.directView(path);
-            System.out.println("Cookie: "+cookie);
         } else {
             view.directView("login");
         }
