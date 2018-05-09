@@ -25,8 +25,12 @@ class Response {
     }
 
     void response(Request request) throws Exception {
-        String path = new PreProcess(request, client, view).process();
-        HashMap<String, String> requestHeader = request.requestHeader;
+        
+        System.out.println("\n" + client.getInetAddress() + ":" + client.getPort());
+
+        String path=request.parse(view);
+        HashMap<String, String> requestHeader=request.getRequestHeader();
+
 
         //僵尸socket处理
         if (path.equals("")) {

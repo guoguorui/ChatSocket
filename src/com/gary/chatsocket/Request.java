@@ -9,7 +9,7 @@ import java.util.HashMap;
 public class Request {
 
     private BufferedReader br;
-    HashMap<String, String> requestHeader = new HashMap<String, String>();
+    private HashMap<String, String> requestHeader = new HashMap<String, String>();
 
     public HashMap<String, String> getRequestHeader() {
         return requestHeader;
@@ -19,8 +19,30 @@ public class Request {
         this.br = br;
     }
 
+    String parse(View view) throws  IOException{
+        String path=getPath();
+        if (path.equals("/")) {
+            path = "index";
+        } else if (!path.equals("")) {
+            path = path.substring(1);
+        }
+
+        //图标处理
+        if (path.contains("favicon.ico")) {
+            path = "static/favicon.ico";
+        }
+
+        //cookie处理
+        if (requestHeader.containsKey("Cookie")) {
+            view.setName(requestHeader.get("Cookie").split("=")[1].substring(0, 3));
+            view.setCookie(true);
+        }
+
+        return path;
+    }
+
     //不同浏览器，提交的header不完全相同
-    String getPath(Socket client) throws IOException {
+    String getPath() throws IOException {
         String line = br.readLine();
         String path = "";
         int ch = 0;
@@ -29,8 +51,6 @@ public class Request {
         if (line == null || line.contains("router") || line.contains("webnoauth")) {
             return "";
         }
-
-        System.out.println("\n" + client.getInetAddress() + ":" + client.getPort());
 
         if (line.contains("GET")) {
             path = line.split(" ")[1];
