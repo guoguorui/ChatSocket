@@ -73,12 +73,7 @@ class Response {
             System.out.println("");
         }
 
-        //压缩测试
-        //不传输length也没毛病
-        else if (path.contains("testgzip")) {
-            view.gzipTest();
-            System.out.println("");
-        } else {
+        else {
             view.directView(path);
         }
 
