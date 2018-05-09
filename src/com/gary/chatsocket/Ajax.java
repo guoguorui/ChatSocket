@@ -1,27 +1,27 @@
 package com.gary.chatsocket;
 
+import java.io.IOException;
+import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.sql.SQLException;
 
 class Ajax {
-    private PrintWriter pw;
+    private OutputStream os;
     static ConnectPool cp = new ConnectPool();
 
-    Ajax(PrintWriter pw) {
-        this.pw = pw;
+    Ajax(OutputStream os) {
+        this.os = os;
     }
 
-    void doAjax() {
+    void doAjax() throws IOException{
         System.out.println("into doAjax()");
-        pw.write("Hello,I come from ajax\n");
-        pw.close();
+        os.write("Hello,I come from ajax\n".getBytes());
     }
 
-    void doJdbc() throws SQLException {
+    void doJdbc() throws Exception {
         System.out.println("into doJdbc()");
         DAO od = new DAO(cp);
         String username = od.findName();
-        pw.write(username + "\n");
-        pw.close();
+        os.write((username + "\n").getBytes());
     }
 }

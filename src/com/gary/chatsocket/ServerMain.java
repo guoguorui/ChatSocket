@@ -49,7 +49,7 @@ public class ServerMain {
             public void run() {
                 try {
                     BufferedReader br = new BufferedReader(new InputStreamReader(client.getInputStream()));
-                    Response sent = new Response(client);
+                    Controller sent = new Controller(client);
                     sent.response(new Request(br));
                 } catch (Exception e) {
                     e.printStackTrace();

@@ -1,6 +1,7 @@
 package com.gary.chatsocket;
 
 import java.io.IOException;
+import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.net.Socket;
 import java.util.HashMap;
@@ -10,22 +11,22 @@ import java.util.HashMap;
 //架构变成switch case
 //对cookie内容进行编码，使其含有用户信息
 
-class Response {
+class Controller {
 
     private Socket client;
-    private PrintWriter pw;
+    private OutputStream os;
     private View view;
     private Ajax ajax;
 
-    Response(Socket client) throws IOException {
+    Controller(Socket client) throws IOException {
         this.client = client;
-        pw = new PrintWriter(client.getOutputStream());
-        view = new View(client, pw);
-        ajax = new Ajax(pw);
+        os=client.getOutputStream();
+        view = new View(os);
+        ajax = new Ajax(os);
     }
 
     void response(Request request) throws Exception {
-        
+
         System.out.println("\n" + client.getInetAddress() + ":" + client.getPort());
 
         String path=request.parse(view);
@@ -34,13 +35,13 @@ class Response {
 
         //僵尸socket处理
         if (path.equals("")) {
-            pw.close();
+            os.close();
             return;
         }
 
         //websocket处理
         if (requestHeader.containsKey("Sec-WebSocket-Key")) {
-            WebSocket.processRead(requestHeader.get("Sec-WebSocket-Key"), pw, client, view);
+            WebSocket.processRead(requestHeader.get("Sec-WebSocket-Key"), new PrintWriter(client.getOutputStream()), client, view);
             return;
             //pw不能在这里close，这个socket要手动升级为websocket
         }
@@ -64,7 +65,7 @@ class Response {
 
         //登录处理
         else if (path.contains("processLogin")) {
-            Security.doProcessLogin(path, view, pw);
+            Security.doProcessLogin(path, view, os);
             System.out.println("");
         }
 
@@ -81,5 +82,6 @@ class Response {
             view.directView(path);
         }
 
+        os.close();
     }
 }

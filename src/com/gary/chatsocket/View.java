@@ -8,8 +8,7 @@ import java.util.HashMap;
 import java.util.Set;
 
 public class View {
-    private BufferedReader br;
-    private Socket client;
+    private OutputStream os;
     private HashMap<String, String> responseHeader = new HashMap<>();
     private String filename = System.getProperty("user.dir") + "\\resource\\";
     String name = "BALALA";
@@ -17,8 +16,8 @@ public class View {
     private boolean enableSession = false;
     boolean cookie = false;
 
-    View(Socket client, PrintWriter pw) {
-        this.client = client;
+    View(OutputStream os) {
+        this.os = os;
         responseHeader.put("Server", "ChatSocket");
         responseHeader.put("Content-Type", "text/html");
         responseHeader.put("Connection", "keep-alive");
@@ -69,7 +68,7 @@ public class View {
     }
 
     private String readFile(String filename) throws IOException {
-        br = new BufferedReader(new FileReader(filename));
+        BufferedReader br = new BufferedReader(new FileReader(filename));
         StringBuilder sb = new StringBuilder();
         String temp;
         while ((temp = br.readLine()) != null)
@@ -95,12 +94,9 @@ public class View {
     private void output(String content){
         String header= getHeader();
         try {
-            OutputStream os = client.getOutputStream();
             byte[] csb = GZip.compressString(content);
             os.write(header.getBytes("UTF-8"));
             os.write(csb);
-            os.flush();
-            os.close();
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -109,11 +105,8 @@ public class View {
     private void output(byte[] content){
         String header= getHeader();
         try {
-            OutputStream os = client.getOutputStream();
             os.write(header.getBytes("UTF-8"));
             os.write(content);
-            os.flush();
-            os.close();
         } catch (Exception e) {
             e.printStackTrace();
         }

@@ -273,7 +273,7 @@ class ReadThread extends Thread {
                 //responseClient(byteBuf, true);
                 WebSocket.printRes(byteBuf.array());
                 String message = new String(byteBuf.array());
-                //Response.mass(message);
+                //Controller.mass(message);
                 WebSocket.chatToOne(name, message);
             }
         } catch (Exception e) {
