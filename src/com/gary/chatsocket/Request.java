@@ -6,12 +6,12 @@ import java.net.Socket;
 import java.util.HashMap;
 
 
-public class Request {
+class Request {
 
     private BufferedReader br;
     private HashMap<String, String> requestHeader = new HashMap<String, String>();
 
-    public HashMap<String, String> getRequestHeader() {
+    HashMap<String, String> getRequestHeader() {
         return requestHeader;
     }
 
@@ -19,7 +19,7 @@ public class Request {
         this.br = br;
     }
 
-    String parse(View view) throws  IOException{
+    String parse() throws  IOException{
         String path=getPath();
         if (path.equals("/")) {
             path = "index";
@@ -32,17 +32,17 @@ public class Request {
             path = "static/favicon.ico";
         }
 
-        //cookie处理
+       /* //cookie处理
         if (requestHeader.containsKey("Cookie")) {
             view.setName(requestHeader.get("Cookie").split("=")[1].substring(0, 3));
             view.setCookie(true);
-        }
+        }*/
 
         return path;
     }
 
     //不同浏览器，提交的header不完全相同
-    String getPath() throws IOException {
+    private String getPath() throws IOException {
         String line = br.readLine();
         String path = "";
         int ch = 0;

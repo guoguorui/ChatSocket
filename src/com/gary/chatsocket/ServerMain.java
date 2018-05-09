@@ -48,9 +48,8 @@ public class ServerMain {
             @Override
             public void run() {
                 try {
-                    BufferedReader br = new BufferedReader(new InputStreamReader(client.getInputStream()));
-                    Controller sent = new Controller(client);
-                    sent.response(new Request(br));
+                    Controller controller= new Controller(client);
+                    controller.dispatch();
                 } catch (Exception e) {
                     e.printStackTrace();
                 }

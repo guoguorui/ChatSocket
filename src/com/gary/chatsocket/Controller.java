@@ -1,35 +1,35 @@
 package com.gary.chatsocket;
 
-import java.io.IOException;
-import java.io.OutputStream;
-import java.io.PrintWriter;
+import java.io.*;
 import java.net.Socket;
 import java.util.HashMap;
 
 //html不能在脚本间用注释//
 //使用多路复用
-//架构变成switch case
 //对cookie内容进行编码，使其含有用户信息
 
 class Controller {
 
     private Socket client;
     private OutputStream os;
+    private Request request;
     private View view;
     private Ajax ajax;
 
     Controller(Socket client) throws IOException {
         this.client = client;
         os=client.getOutputStream();
+        request=new Request(new BufferedReader(new InputStreamReader(client.getInputStream())));
         view = new View(os);
         ajax = new Ajax(os);
     }
 
-    void response(Request request) throws Exception {
+    void dispatch() throws Exception {
 
         System.out.println("\n" + client.getInetAddress() + ":" + client.getPort());
 
-        String path=request.parse(view);
+        //request对path进行解析，包括header的存储
+        String path=request.parse();
         HashMap<String, String> requestHeader=request.getRequestHeader();
 
 
@@ -45,6 +45,7 @@ class Controller {
             return;
             //pw不能在这里close，这个socket要手动升级为websocket
         }
+
 
         //选择聊天对象前进行登录拦截
         if (path.contains("chatwho")) {
@@ -82,7 +83,7 @@ class Controller {
         else {
             view.directView(path);
         }
-        
+
         os.close();
     }
 }
