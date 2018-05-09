@@ -39,33 +39,28 @@ class Controller {
             return;
         }
 
-        //websocket处理
+        //用户点击了建立连接升级websocket协议的按钮，开始监听用户输入，控制权交给WebSocket类
         if (requestHeader.containsKey("Sec-WebSocket-Key")) {
             WebSocket.processRead(requestHeader.get("Sec-WebSocket-Key"), new PrintWriter(client.getOutputStream()), client, view);
             return;
             //pw不能在这里close，这个socket要手动升级为websocket
         }
 
-        //静态资源处理
-        if (path.contains("static")) {
-            view.directStatic(path);
-        }
-
-        //chat处理
-        else if (path.contains("chatwho")) {
+        //选择聊天对象前进行登录拦截
+        if (path.contains("chatwho")) {
             Security.doSafe(path, view);
             System.out.println("");
         }
 
-        // ‘=’并非特殊符号
-        else if (path.contains("wschat")) {
-            WebSocket.processRelationship(path, view);
+        //验证用户名和密码
+        else if (path.contains("processLogin")) {
+            Security.doProcessLogin(path, view, os);
             System.out.println("");
         }
 
-        //登录处理
-        else if (path.contains("processLogin")) {
-            Security.doProcessLogin(path, view, os);
+        //用户选中了要聊天的对象，进行关系映射
+        else if (path.contains("wschat")) {
+            WebSocket.processRelationship(path, view);
             System.out.println("");
         }
 
@@ -78,10 +73,16 @@ class Controller {
             System.out.println("");
         }
 
+        //静态页面渲染
+        else if (path.contains("static")) {
+            view.directStatic(path);
+        }
+
+        //普通页面渲染
         else {
             view.directView(path);
         }
-
+        
         os.close();
     }
 }
