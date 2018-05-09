@@ -1,5 +1,6 @@
 package org.gary.chatsocket.chat;
 
+import org.gary.chatsocket.mvc.Model;
 import org.gary.chatsocket.mvc.View;
 
 import java.io.ByteArrayInputStream;
@@ -87,10 +88,10 @@ public class WebSocket {
         }
     }
 
-    public static void processRelationship(String path, View view) {
+    public static void processRelationship(String path, String name,View view) {
         String friend = path.split("=")[1];
-        WebSocket.nameToFriend.put(view.getName(), friend);
-        view.setFriend(friend);
+        WebSocket.nameToFriend.put(name, friend);
+        view.setModel(new Model(name,friend));
         try {
             view.directView("wschat");
         } catch (IOException e) {
@@ -102,7 +103,8 @@ public class WebSocket {
         WebSocket ws = null;
         try {
             ws = new WebSocket(key, pw, client);
-            WebSocket.nameToSocket.put(view.getName(), client);
+            Model model=(Model) view.getModel();
+            WebSocket.nameToSocket.put(model.getName(), client);
             ws.connect();
             new ReadThread(client).start();
         } catch (IOException e) {

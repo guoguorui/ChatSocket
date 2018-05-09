@@ -64,7 +64,9 @@ public class Controller {
 
         //用户选中了要聊天的对象，进行关系映射
         else if (path.contains("wschat")) {
-            WebSocket.processRelationship(path, view);
+            String cookie=requestHeader.get("Cookie");
+            String name=cookie.substring(0,cookie.indexOf('='));
+            WebSocket.processRelationship(path,name,view);
             System.out.println("");
         }
 

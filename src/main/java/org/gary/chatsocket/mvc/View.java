@@ -4,6 +4,7 @@ import org.gary.chatsocket.util.GZipUtil;
 import com.sun.xml.internal.messaging.saaj.util.ByteOutputStream;
 
 import java.io.*;
+import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.Set;
 
@@ -11,8 +12,7 @@ public class View {
     private OutputStream os;
     private HashMap<String, String> responseHeader = new HashMap<>();
     private String filename = System.getProperty("user.dir") + "\\resource\\";
-    private String name = "BALALA";
-    private String friend = "CHALABLA";
+    private Object model;
     private boolean enableSession = false;
     private boolean cookie = false;
     private String token;
@@ -25,7 +25,6 @@ public class View {
         responseHeader.put("Content-Encoding", "gzip");
     }
 
-    //根据name设置friend并在页面进行替换，如果刚登陆，还要给出cookie
     public void directView(String path) throws IOException {
         if (!cookie && enableSession){
             responseHeader.put("Set-Cookie",token);
@@ -33,20 +32,26 @@ public class View {
         }
         filename += path + ".html";
         String content=readFile(filename);
-        //省略了数据库查询
-        if (path.contains("chatwho") || path.contains("wschat")) {
-            if (name.equals("GGR"))
-                friend = "abc";
-            else if (name.equals("abc"))
-                friend = "GGR";
+        //先支持简单String的映射
+        if(model!=null){
+            Class<?> clazz=model.getClass();
+            Field[] fields=clazz.getDeclaredFields();
+            for(Field field:fields){
+                try {
+                    field.setAccessible(true);
+                    String value=(String) field.get(model);
+                    if(value!=null)
+                        content = content.replaceAll("\\{"+field.getName()+"\\}", value);
+                } catch (IllegalAccessException e) {
+                    e.printStackTrace();
+                }
+            }
         }
-        content = content.replaceAll("\\{name\\}", name);
-        content = content.replaceAll("\\{friend\\}", friend);
         output(content);
     }
 
 
-    public void directStatic(String path) throws IOException {
+    void directStatic(String path) throws IOException {
         path = path.replaceAll("/", "\\\\");
         String staticName = filename + path;
         responseHeader.put("Cache-Control", "max-age=5184000");
@@ -119,18 +124,6 @@ public class View {
         this.enableSession = enableSession;
     }
 
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setFriend(String friend) {
-        this.friend = friend;
-    }
-
     public void setCookie(boolean cookie) {
         this.cookie = cookie;
     }
@@ -145,5 +138,13 @@ public class View {
 
     public void setToken(String token) {
         this.token = token;
+    }
+
+    public Object getModel() {
+        return model;
+    }
+
+    public void setModel(Object model) {
+        this.model = model;
     }
 }
