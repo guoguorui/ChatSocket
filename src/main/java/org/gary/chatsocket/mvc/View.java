@@ -24,7 +24,7 @@ public class View {
         responseHeader.put("Content-Encoding", "gzip");
     }
 
-    public void directView(String path) throws IOException {
+    public void directView(String path) throws Exception {
         if(putCookie){
             responseHeader.put("Set-Cookie",cookie);
             putCookie=false;
@@ -36,14 +36,10 @@ public class View {
             Class<?> clazz=model.getClass();
             Field[] fields=clazz.getDeclaredFields();
             for(Field field:fields){
-                try {
-                    field.setAccessible(true);
-                    String value=(String) field.get(model);
-                    if(value!=null)
-                        content = content.replaceAll("\\{"+field.getName()+"\\}", value);
-                } catch (IllegalAccessException e) {
-                    e.printStackTrace();
-                }
+                field.setAccessible(true);
+                String value=(String) field.get(model);
+                if(value!=null)
+                    content = content.replaceAll("\\{"+field.getName()+"\\}", value);
             }
         }
         output(content);
@@ -100,25 +96,17 @@ public class View {
         return sb.toString();
     }
 
-    private void output(String content){
+    private void output(String content) throws IOException{
         String header= getHeader();
-        try {
-            byte[] csb = GZipUtil.compressString(content);
-            os.write(header.getBytes("UTF-8"));
-            os.write(csb);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        byte[] csb = GZipUtil.compressString(content);
+        os.write(header.getBytes("UTF-8"));
+        os.write(csb);
     }
 
-    private void output(byte[] content){
+    private void output(byte[] content) throws IOException{
         String header= getHeader();
-        try {
-            os.write(header.getBytes("UTF-8"));
-            os.write(content);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        os.write(header.getBytes("UTF-8"));
+        os.write(content);
     }
 
     public boolean isPutCookie() {

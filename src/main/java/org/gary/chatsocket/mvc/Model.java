@@ -19,7 +19,7 @@ public class Model {
     public void setFields(String ...strings) throws Exception{
         int len=strings.length;
         if(len%2!=0)
-            throw new Exception("parameter num error");
+            throw new RuntimeException("parameter num error");
         Field[] fields=this.getClass().getDeclaredFields();
         for(int i=0;i<len;i+=2){
             for(Field field:fields){

@@ -1,6 +1,5 @@
 package org.gary.chatsocket.chat;
 
-import jdk.internal.util.xml.impl.Input;
 import org.gary.chatsocket.mvc.Model;
 import org.gary.chatsocket.mvc.View;
 
@@ -25,23 +24,19 @@ public class WebSocket {
             new ThreadPoolExecutor(10, 50, 60, TimeUnit.SECONDS,
             new LinkedBlockingQueue<Runnable>());
 
-    private static void connect(String key,PrintWriter pw){
-        try {
-            key += "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
-            MessageDigest md = MessageDigest.getInstance("SHA-1");
-            md.update(key.getBytes("utf-8"), 0, key.length());
-            byte[] sha1Hash = md.digest();
-            sun.misc.BASE64Encoder encoder = new sun.misc.BASE64Encoder();
-            key = encoder.encode(sha1Hash);
-            pw.println("HTTP/1.1 101 Switching Protocols");
-            pw.println("Upgrade: websocket");
-            pw.println("Connection: Upgrade");
-            pw.println("Sec-WebSocket-Accept: " + key);
-            pw.println();
-            pw.flush();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+    private static void connect(String key,PrintWriter pw) throws Exception{
+        key += "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
+        MessageDigest md = MessageDigest.getInstance("SHA-1");
+        md.update(key.getBytes("utf-8"), 0, key.length());
+        byte[] sha1Hash = md.digest();
+        sun.misc.BASE64Encoder encoder = new sun.misc.BASE64Encoder();
+        key = encoder.encode(sha1Hash);
+        pw.println("HTTP/1.1 101 Switching Protocols");
+        pw.println("Upgrade: websocket");
+        pw.println("Connection: Upgrade");
+        pw.println("Sec-WebSocket-Accept: " + key);
+        pw.println();
+        pw.flush();
     }
 
     static void writeToClient(String name, String message) {
@@ -62,14 +57,14 @@ public class WebSocket {
         }
     }
 
-    public static void chooseFriend(String path, String name, View view) throws IOException{
+    public static void chooseFriend(String path, String name, View view) throws Exception{
         String friend = path.split("=")[1];
         nameToFriend.put(name, friend);
         view.setModel(new Model(name,friend));
         view.directView("wschat");
     }
 
-    public static void connectAndListen(String key, String name,Socket client) throws IOException{
+    public static void connectAndListen(String key, String name,Socket client) throws Exception{
         PrintWriter pw=new PrintWriter(client.getOutputStream());
         WebSocket.connect(key,pw);
         nameToSocket.put(name, client);

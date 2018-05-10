@@ -51,7 +51,6 @@ class Request {
                     break;
                 }
             }
-            //System.out.println(path);
             //response之前无法关闭输入流
             return path;
         }

@@ -8,7 +8,15 @@ import java.io.OutputStream;
 
 public class Ajax {
     private OutputStream os;
-    public static ConnectPool cp = new ConnectPool(10);
+    public static ConnectPool cp;
+
+    static {
+        try {
+            cp=new ConnectPool(10);
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+    }
 
     Ajax(OutputStream os) {
         this.os = os;

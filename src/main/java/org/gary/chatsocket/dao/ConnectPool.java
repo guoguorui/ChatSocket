@@ -24,15 +24,15 @@ public class ConnectPool {
         }
     }
 
-    public ConnectPool() {
+    public ConnectPool() throws Exception{
         this(10,50);
     }
 
-    public ConnectPool(int initSize) {
+    public ConnectPool(int initSize) throws Exception{
         this(initSize,50);
     }
 
-    public ConnectPool(int initSize, int maxSize) {
+    public ConnectPool(int initSize, int maxSize) throws Exception{
         for (int i = 0; i < initSize; i++) {
             Connection connection = this.getConnFromJDBC();
             queue.add(connection);
@@ -42,7 +42,7 @@ public class ConnectPool {
     }
 
 
-    Connection getConnFromPool() throws InterruptedException{
+    Connection getConnFromPool() throws Exception{
         Connection conn=queue.poll();
         if(conn==null){
             if(createdSize<maxSize){
@@ -55,35 +55,30 @@ public class ConnectPool {
     }
 
     //返回一个代理过的Connection对象
-    private Connection getConnFromJDBC() {
+    private Connection getConnFromJDBC() throws SQLException{
         String url = "jdbc:mysql://localhost/chatsocket";
         String user = "root";
         String password = "234";
-        try {
-            final Connection conn = (Connection) DriverManager.getConnection(url, user, password);
-            return (Connection) Proxy.newProxyInstance(
-                    ConnectPool.class.getClassLoader(),
-                    new Class[]{Connection.class},
-                    new InvocationHandler() {
-                        @Override
-                        public Object invoke(Object proxy, Method method, Object[] args)
-                                throws Throwable {
-                            Object value = null;
-                            //当遇到close方法，就会把对象放回连接池中，而不是关闭连接
-                            if (method.getName().equals("close")) {
-                                //将代理的对象回收，而不是原始的JDBC4Connection
-                                queue.offer((Connection)proxy);
-                            } else {
-                                //其它方法不变
-                                value = method.invoke(conn, args);
-                            }
-                            return value;
+        final Connection conn = (Connection) DriverManager.getConnection(url, user, password);
+        return (Connection) Proxy.newProxyInstance(
+                ConnectPool.class.getClassLoader(),
+                new Class[]{Connection.class},
+                new InvocationHandler() {
+                    @Override
+                    public Object invoke(Object proxy, Method method, Object[] args)
+                            throws Throwable {
+                        Object value = null;
+                        //当遇到close方法，就会把对象放回连接池中，而不是关闭连接
+                        if (method.getName().equals("close")) {
+                            //将代理的对象回收，而不是原始的JDBC4Connection
+                            queue.offer((Connection)proxy);
+                        } else {
+                            //其它方法不变
+                            value = method.invoke(conn, args);
                         }
+                        return value;
                     }
-            );
-        } catch (SQLException e) {
-            e.printStackTrace();
-            throw new RuntimeException(e);
-        }
+                }
+        );
     }
 }

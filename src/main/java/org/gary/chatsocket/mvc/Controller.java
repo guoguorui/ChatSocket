@@ -10,8 +10,12 @@ import java.net.Socket;
 //html不能在脚本间用注释//
 //使用多路复用
 //整理实例和静态
-//整理WebSocket
 //异常封装
+//支持post的multipart
+//devtools
+//API化
+//实现orm
+//加入消息队列
 
 public class Controller {
 
@@ -21,7 +25,7 @@ public class Controller {
     private View view;
     private Ajax ajax;
 
-    public Controller(Socket client) throws IOException {
+    public Controller(Socket client) throws IOException{
         this.client = client;
         os=client.getOutputStream();
         request=new Request(new BufferedReader(new InputStreamReader(client.getInputStream())));

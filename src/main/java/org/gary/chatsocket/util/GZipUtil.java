@@ -1,11 +1,12 @@
 package org.gary.chatsocket.util;
 
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.util.zip.GZIPOutputStream;
 
 public class GZipUtil {
 
-    public static byte[] compress(byte[] data) throws Exception {
+    public static byte[] compress(byte[] data) throws IOException{
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         GZIPOutputStream gos = new GZIPOutputStream(baos);
         gos.write(data, 0, data.length);
@@ -16,7 +17,7 @@ public class GZipUtil {
         return output;
     }
 
-    public static byte[] compressString(String s) throws Exception {
+    public static byte[] compressString(String s) throws IOException {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         GZIPOutputStream gos = new GZIPOutputStream(baos);
         byte[] data = s.getBytes("UTF-8");

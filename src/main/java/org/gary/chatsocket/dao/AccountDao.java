@@ -15,32 +15,24 @@ public class AccountDao {
         this.cp=cp;
     }
 
-    private void init(){
-        try {
-            conn = cp.getConnFromPool();
-            stmt = conn.createStatement();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+    private void init() throws Exception{
+        conn = cp.getConnFromPool();
+        stmt = conn.createStatement();
     }
 
-    public String findName() {
+    public String findName() throws Exception{
         init();
         String sql = "SELECT name FROM user";
         String name = null;
-        try {
-            rs = stmt.executeQuery(sql);
-            while (rs.next()) {
-                name = rs.getString("name");
-            }
-            cleanClose();
-        } catch (Exception e) {
-            e.printStackTrace();
+        rs = stmt.executeQuery(sql);
+        while (rs.next()) {
+            name = rs.getString("name");
         }
+        cleanClose();
         return name;
     }
 
-    public boolean authenticate(String name, String password) {
+    public boolean authenticate(String name, String password) throws Exception{
         String uploadPassword= MD5Util.encrypt(password);
         int status=Cache.judgeAuth(name,uploadPassword);
         if(status==1){
@@ -52,21 +44,17 @@ public class AccountDao {
             init();
             boolean flag = false;
             String sql = "SELECT password FROM user where name='" + name + "'";
-            try {
-                rs = stmt.executeQuery(sql);
-                while (rs.next()) {
-                    String basePassword=rs.getString("password");
-                    if(basePassword!=null){
-                        Cache.addAuth(name,basePassword);
-                        if (basePassword.equals(uploadPassword)) {
-                            flag = true;
-                        }
+            rs = stmt.executeQuery(sql);
+            while (rs.next()) {
+                String basePassword=rs.getString("password");
+                if(basePassword!=null){
+                    Cache.addAuth(name,basePassword);
+                    if (basePassword.equals(uploadPassword)) {
+                        flag = true;
                     }
                 }
-                cleanClose();
-            } catch (Exception e) {
-                e.printStackTrace();
             }
+            cleanClose();
             return flag;
         }
 

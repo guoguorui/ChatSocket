@@ -11,15 +11,6 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
-
-//支持post的multipart
-//devtools
-//API化
-//实现orm
-//处理不在线
-//性能调优
-//搞定缓存
-//加入消息队列
 public class ServerMain {
 
     public static void main(String[] args) throws IOException, IllegalAccessException, IllegalArgumentException, InvocationTargetException, ClassNotFoundException, InstantiationException, NoSuchMethodException, SecurityException, CloneNotSupportedException {
