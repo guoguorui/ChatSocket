@@ -2,13 +2,13 @@ package org.gary.chatsocket.mvc;
 
 
 import org.gary.chatsocket.dao.ConnectPool;
-import org.gary.chatsocket.dao.DAO;
+import org.gary.chatsocket.dao.AccountDao;
 import java.io.IOException;
 import java.io.OutputStream;
 
 public class Ajax {
     private OutputStream os;
-    public static ConnectPool cp = new ConnectPool();
+    public static ConnectPool cp = new ConnectPool(10);
 
     Ajax(OutputStream os) {
         this.os = os;
@@ -21,7 +21,7 @@ public class Ajax {
 
     void doJdbc() throws Exception {
         System.out.println("into doJdbc()");
-        DAO od = new DAO(cp);
+        AccountDao od = new AccountDao(cp);
         String username = od.findName();
         os.write((username + "\n").getBytes());
     }

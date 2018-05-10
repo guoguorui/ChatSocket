@@ -2,7 +2,7 @@ package org.gary.chatsocket.security;
 
 import org.gary.chatsocket.dao.CacheCookie;
 import org.gary.chatsocket.dao.ConnectPool;
-import org.gary.chatsocket.dao.DAO;
+import org.gary.chatsocket.dao.AccountDao;
 import org.gary.chatsocket.mvc.Ajax;
 import org.gary.chatsocket.mvc.Model;
 import org.gary.chatsocket.mvc.View;
@@ -19,7 +19,7 @@ public class Security {
         String param = path.split("\\?")[1];
         String name = param.split("&")[0].split("=")[1];
         String password = param.split("&")[1].split("=")[1];
-        DAO od = new DAO(cp);
+        AccountDao od = new AccountDao(cp);
         if (od.authenticate(name, password)) {
             String cookie=name+"="+UUID.randomUUID();
             view.setPutCookie(true);

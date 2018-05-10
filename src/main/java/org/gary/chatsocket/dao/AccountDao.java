@@ -4,16 +4,16 @@ import org.gary.chatsocket.util.MD5Util;
 
 import java.sql.*;
 
-public class DAO {
+public class AccountDao {
 
     private Connection conn = null;
     private Statement stmt = null;
     private ResultSet rs = null;
     ConnectPool cp = null;
 
-    public DAO(ConnectPool cp) {
+    public AccountDao(ConnectPool cp) {
         try {
-            conn = cp.getConnFromPool(this);
+            conn = cp.getConnFromPool();
             stmt = conn.createStatement();
         } catch (Exception e) {
             e.printStackTrace();
@@ -54,7 +54,7 @@ public class DAO {
         return flag;
     }
 
-    private void cleanClose() {
+    private void cleanClose(){
         boolean flag = false;
         try {
             rs.close();
@@ -62,15 +62,13 @@ public class DAO {
             conn.close();
             flag = true;
         } catch (SQLException se) {
-            //Handle errors for JDBC
             se.printStackTrace();
         } finally {
-            //finally block used to close resources
             try {
                 if (stmt != null)
                     stmt.close();
             } catch (SQLException se2) {
-            }// nothing we can do
+            }
             try {
                 if (!flag) {
                     conn.close();
@@ -78,6 +76,6 @@ public class DAO {
 
             } catch (SQLException se2) {
             }
-        }//end try
+        }
     }
 }
