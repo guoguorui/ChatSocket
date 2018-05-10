@@ -1,5 +1,6 @@
 package org.gary.chatsocket.mvc;
 
+import org.gary.chatsocket.chat.MQWebSocket;
 import org.gary.chatsocket.chat.WebSocket;
 import org.gary.chatsocket.security.Security;
 
@@ -44,7 +45,8 @@ public class Controller {
         //用户点击了建立连接升级websocket协议的按钮，开始监听用户输入，控制权交给WebSocket类
         if (request.getRequestHeader().containsKey("Sec-WebSocket-Key")) {
             String key=request.getRequestHeader().get("Sec-WebSocket-Key");
-            WebSocket.connectAndListen(key,rawCookie,client);
+            //WebSocket.connectAndListen(key,rawCookie,client); //1
+            MQWebSocket.connectAndListen(path,rawCookie,key,client);
             //os不能在这里close，这个socket要手动升级为websocket
             return;
         }
@@ -63,7 +65,8 @@ public class Controller {
 
         //用户选中了要聊天的对象，进行关系映射
         else if (path.contains("wschat")) {
-            WebSocket.chooseFriend(path,rawCookie,view);
+            //WebSocket.chooseFriend(path,rawCookie,view);  //2
+            MQWebSocket.chooseFriend(path,rawCookie,view);
             System.out.println("");
         }
 
