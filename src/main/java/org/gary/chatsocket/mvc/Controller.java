@@ -31,7 +31,7 @@ public class Controller {
 
         //request对path进行解析，包括header的存储
         String path=request.parse();
-        HashMap<String, String> requestHeader=request.getRequestHeader();
+        String rawCookie=request.getRequestHeader().get("Cookie");
 
         //僵尸socket处理
         if (path.equals("")) {
@@ -43,15 +43,14 @@ public class Controller {
         System.out.println(path);
 
         //用户点击了建立连接升级websocket协议的按钮，开始监听用户输入，控制权交给WebSocket类
-        if (requestHeader.containsKey("Sec-WebSocket-Key")) {
-            WebSocket.processRead(requestHeader.get("Sec-WebSocket-Key"), new PrintWriter(client.getOutputStream()), client, view);
+        if (request.getRequestHeader().containsKey("Sec-WebSocket-Key")) {
+            WebSocket.processRead(request.getRequestHeader().get("Sec-WebSocket-Key"), new PrintWriter(client.getOutputStream()), client, view);
             return;
             //pw不能在这里close，这个socket要手动升级为websocket
         }
 
         //选择聊天对象前进行登录拦截
         if (path.contains("chatwho")) {
-            String rawCookie=requestHeader.get("Cookie");
             Security.intercept(path,rawCookie,view);
             System.out.println("");
         }
@@ -64,7 +63,6 @@ public class Controller {
 
         //用户选中了要聊天的对象，进行关系映射
         else if (path.contains("wschat")) {
-            String rawCookie=requestHeader.get("Cookie");
             String name= CookieUtil.getName(rawCookie);
             WebSocket.processRelationship(path,name,view);
             System.out.println("");
@@ -72,7 +70,6 @@ public class Controller {
 
         //清除缓存中的cookie
         else if (path.contains("logout")){
-            String rawCookie=requestHeader.get("Cookie");
             Security.logout(rawCookie,view);
             System.out.println("");
         }
