@@ -2,19 +2,12 @@ package org.gary.chatsocket.mvc;
 
 import org.gary.chatsocket.chat.WebSocket;
 import org.gary.chatsocket.security.Security;
-import org.gary.chatsocket.util.CookieUtil;
 
 import java.io.*;
 import java.net.Socket;
 
-//html不能在脚本间用注释//
 //使用多路复用
-//整理实例和静态
-//异常封装
-//支持post的multipart
-//devtools
-//API化
-//实现orm
+//完善缓存机制
 //加入消息队列
 
 public class Controller {
@@ -51,10 +44,9 @@ public class Controller {
         //用户点击了建立连接升级websocket协议的按钮，开始监听用户输入，控制权交给WebSocket类
         if (request.getRequestHeader().containsKey("Sec-WebSocket-Key")) {
             String key=request.getRequestHeader().get("Sec-WebSocket-Key");
-            String name=CookieUtil.getName(rawCookie);
-            WebSocket.connectAndListen(key,name,client);
+            WebSocket.connectAndListen(key,rawCookie,client);
+            //os不能在这里close，这个socket要手动升级为websocket
             return;
-            //pw不能在这里close，这个socket要手动升级为websocket
         }
 
         //选择聊天对象前进行登录拦截
@@ -65,20 +57,20 @@ public class Controller {
 
         //验证用户名和密码
         else if (path.contains("processLogin")) {
-            Security.verification(path, view, os);
+            Security.verification(path, view);
             System.out.println("");
         }
 
         //用户选中了要聊天的对象，进行关系映射
         else if (path.contains("wschat")) {
-            String name= CookieUtil.getName(rawCookie);
-            WebSocket.chooseFriend(path,name,view);
+            WebSocket.chooseFriend(path,rawCookie,view);
             System.out.println("");
         }
 
         //清除缓存中的cookie
         else if (path.contains("logout")){
-            Security.logout(rawCookie,view);
+            Security.logout(rawCookie);
+            view.directView("index");
             System.out.println("");
         }
 

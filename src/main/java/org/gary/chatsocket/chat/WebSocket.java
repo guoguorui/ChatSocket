@@ -2,8 +2,8 @@ package org.gary.chatsocket.chat;
 
 import org.gary.chatsocket.mvc.Model;
 import org.gary.chatsocket.mvc.View;
+import org.gary.chatsocket.util.CookieUtil;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintWriter;
@@ -44,6 +44,7 @@ public class WebSocket {
         Socket friendClient = nameToSocket.get(friend);
         Socket localClient = nameToSocket.get(name);
         if (friendClient==null || friendClient.isClosed()) {
+            nameToSocket.remove(friend);
             executor.execute(new WriteTask(localClient,message+"\r\n该好友不在线...其上线后会收到信息"));
             String unRead=nameToMessage.get(friend);
             if(unRead==null)
@@ -57,14 +58,16 @@ public class WebSocket {
         }
     }
 
-    public static void chooseFriend(String path, String name, View view) throws Exception{
+    public static void chooseFriend(String path,String rawCookie,View view) throws Exception{
+        String name= CookieUtil.getName(rawCookie);
         String friend = path.split("=")[1];
         nameToFriend.put(name, friend);
         view.setModel(new Model(name,friend));
         view.directView("wschat");
     }
 
-    public static void connectAndListen(String key, String name,Socket client) throws Exception{
+    public static void connectAndListen(String key, String rawCookie,Socket client) throws Exception{
+        String name=CookieUtil.getName(rawCookie);
         PrintWriter pw=new PrintWriter(client.getOutputStream());
         WebSocket.connect(key,pw);
         nameToSocket.put(name, client);

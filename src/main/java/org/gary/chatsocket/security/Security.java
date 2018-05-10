@@ -15,7 +15,7 @@ public class Security {
 
     private static ConnectPool cp = Ajax.cp;
 
-    public static void verification(String path, View view, OutputStream os) throws Exception {
+    public static void verification(String path, View view) throws Exception {
         String param = path.split("\\?")[1];
         String name = param.split("&")[0].split("=")[1];
         String password = param.split("&")[1].split("=")[1];
@@ -25,10 +25,10 @@ public class Security {
             view.setPutCookie(true);
             view.setCookie(cookieString);
             Cache.addCookie(CookieUtil.parse(cookieString));
-            view.setModel(generateModel(name));
+            view.setModel(Model.generateModel(name));
             view.directView("chatwho");
         } else {
-            os.write("sorry invalid account.\n".getBytes());
+            view.directView("error");
         }
     }
 
@@ -36,30 +36,17 @@ public class Security {
         System.out.println("into intercept");
         String[] cookie= CookieUtil.parse(rawCookie);
         if (cookie[0]!=null && Cache.judgeCookie(cookie)) {
-            view.setModel(generateModel(cookie[0].substring(7)));
+            view.setModel(Model.generateModel(cookie[0].substring(7)));
             view.directView(path);
         } else {
             view.directView("login");
         }
     }
 
-    public static void logout(String rawCookie,View view) throws Exception{
+    public static void logout(String rawCookie) throws Exception{
         System.out.println("into logout");
         String key=CookieUtil.parse(rawCookie)[0];
         Cache.removeCookie(key);
-        view.directView("index");
-    }
-
-    private static Model generateModel(String name) throws Exception{
-        //需要查库将friend查出来填入model中的属性
-        String friend="";
-        if(name.equals("GGR"))
-            friend="abc";
-        else if(name.equals("abc"))
-            friend="GGR";
-        Model model=new Model();
-        model.setFields("friend",friend);
-        return model;
     }
 
 }

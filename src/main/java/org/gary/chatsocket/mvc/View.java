@@ -9,6 +9,7 @@ import java.util.HashMap;
 import java.util.Set;
 
 public class View {
+
     private OutputStream os;
     private HashMap<String, String> responseHeader = new HashMap<>();
     private String filename = System.getProperty("user.dir") + "\\resource\\";
@@ -109,24 +110,12 @@ public class View {
         os.write(content);
     }
 
-    public boolean isPutCookie() {
-        return putCookie;
-    }
-
     public void setPutCookie(boolean putCookie) {
         this.putCookie = putCookie;
     }
 
-    public String getCookie() {
-        return cookie;
-    }
-
     public void setCookie(String cookie) {
         this.cookie = cookie;
-    }
-
-    public Object getModel() {
-        return model;
     }
 
     public void setModel(Object model) {

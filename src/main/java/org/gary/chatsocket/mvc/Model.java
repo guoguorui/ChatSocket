@@ -29,6 +29,18 @@ public class Model {
         }
     }
 
+    public static Model generateModel(String name) throws Exception{
+        //需要查库将friend查出来填入model中的属性
+        String friend="";
+        if(name.equals("GGR"))
+            friend="abc";
+        else if(name.equals("abc"))
+            friend="GGR";
+        Model model=new Model();
+        model.setFields("friend",friend);
+        return model;
+    }
+
     public String getName() {
         return name;
     }
