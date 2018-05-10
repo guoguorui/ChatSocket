@@ -8,9 +8,7 @@ import java.util.HashMap;
 
 //html不能在脚本间用注释//
 //使用多路复用
-//对cookie内容进行编码，使其含有用户信息
 //使用阻塞队列重构连接池
-//model具体化
 
 public class Controller {
 

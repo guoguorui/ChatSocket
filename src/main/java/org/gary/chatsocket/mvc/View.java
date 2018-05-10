@@ -13,9 +13,8 @@ public class View {
     private HashMap<String, String> responseHeader = new HashMap<>();
     private String filename = System.getProperty("user.dir") + "\\resource\\";
     private Object model;
-    private boolean enableSession = false;
-    private boolean cookie = false;
-    private String token;
+    private boolean putCookie;
+    private String cookie;
 
     View(OutputStream os) {
         this.os = os;
@@ -26,9 +25,9 @@ public class View {
     }
 
     public void directView(String path) throws IOException {
-        if (!cookie && enableSession){
-            responseHeader.put("Set-Cookie",token);
-            cookie=true;
+        if(putCookie){
+            responseHeader.put("Set-Cookie",cookie);
+            putCookie=false;
         }
         filename += path + ".html";
         String content=readFile(filename);
@@ -79,8 +78,10 @@ public class View {
         BufferedReader br = new BufferedReader(new FileReader(filename));
         StringBuilder sb = new StringBuilder();
         String temp;
-        while ((temp = br.readLine()) != null)
+        while ((temp = br.readLine()) != null){
             sb.append(temp);
+            sb.append("\r\n");
+        }
         temp = sb.toString();
         return temp;
     }
@@ -120,24 +121,20 @@ public class View {
         }
     }
 
-    public void setEnableSession(boolean enableSession) {
-        this.enableSession = enableSession;
+    public boolean isPutCookie() {
+        return putCookie;
     }
 
-    public void setCookie(boolean cookie) {
+    public void setPutCookie(boolean putCookie) {
+        this.putCookie = putCookie;
+    }
+
+    public String getCookie() {
+        return cookie;
+    }
+
+    public void setCookie(String cookie) {
         this.cookie = cookie;
-    }
-
-    public boolean getCookie() {
-        return this.cookie;
-    }
-
-    public String getToken() {
-        return token;
-    }
-
-    public void setToken(String token) {
-        this.token = token;
     }
 
     public Object getModel() {

@@ -2,7 +2,6 @@ package org.gary.chatsocket.mvc;
 
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.net.Socket;
 import java.util.HashMap;
 
 
@@ -10,10 +9,6 @@ class Request {
 
     private BufferedReader br;
     private HashMap<String, String> requestHeader = new HashMap<String, String>();
-
-    HashMap<String, String> getRequestHeader() {
-        return requestHeader;
-    }
 
     Request(BufferedReader br) throws IOException {
         this.br = br;
@@ -87,5 +82,10 @@ class Request {
         System.out.println(path + "?na" + sb.toString());
         return path + "?" + sb.toString();
     }
+
+    HashMap<String, String> getRequestHeader() {
+        return requestHeader;
+    }
+
 
 }

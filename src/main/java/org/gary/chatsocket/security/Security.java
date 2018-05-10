@@ -21,10 +21,10 @@ public class Security {
         String password = param.split("&")[1].split("=")[1];
         DAO od = new DAO(cp);
         if (od.authenticate(name, password)) {
-            String token=name+"="+UUID.randomUUID();
-            view.setToken(token);
-            view.setEnableSession(true);
-            CacheCookie.addCookie(token);
+            String cookie=name+"="+UUID.randomUUID();
+            view.setPutCookie(true);
+            view.setCookie(cookie);
+            CacheCookie.addCookie(cookie);
             view.directView("chatwho");
         } else {
             os.write("sorry invalid account.\n".getBytes());
