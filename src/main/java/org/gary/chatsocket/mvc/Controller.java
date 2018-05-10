@@ -2,6 +2,8 @@ package org.gary.chatsocket.mvc;
 
 import org.gary.chatsocket.chat.WebSocket;
 import org.gary.chatsocket.security.Security;
+import org.gary.chatsocket.util.CookieUtil;
+
 import java.io.*;
 import java.net.Socket;
 import java.util.HashMap;
@@ -63,8 +65,15 @@ public class Controller {
         //用户选中了要聊天的对象，进行关系映射
         else if (path.contains("wschat")) {
             String rawCookie=requestHeader.get("Cookie");
-            String name=Security.parseCookie(rawCookie)[0].substring(7);
+            String name= CookieUtil.getName(rawCookie);
             WebSocket.processRelationship(path,name,view);
+            System.out.println("");
+        }
+
+        //清除缓存中的cookie
+        else if (path.contains("logout")){
+            String rawCookie=requestHeader.get("Cookie");
+            Security.logout(rawCookie,view);
             System.out.println("");
         }
 

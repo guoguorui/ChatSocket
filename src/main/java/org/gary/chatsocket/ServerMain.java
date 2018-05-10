@@ -28,8 +28,20 @@ public class ServerMain {
         ServerSocket serverSocket = new ServerSocket(80);
         try {
             while (true) {
-                Socket client = serverSocket.accept();
-                exceService(executor, client);
+                final Socket client = serverSocket.accept();
+                Thread r = new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        try {
+                            Controller controller= new Controller(client);
+                            controller.dispatch();
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                    }
+
+                });
+                executor.execute(r);
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -39,19 +51,4 @@ public class ServerMain {
 
     }
 
-    private static void exceService(ThreadPoolExecutor executor, final Socket client) {
-        Thread r = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    Controller controller= new Controller(client);
-                    controller.dispatch();
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-
-        });
-        executor.execute(r);
-    }
 }

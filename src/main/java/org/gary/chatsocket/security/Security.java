@@ -6,6 +6,7 @@ import org.gary.chatsocket.dao.AccountDao;
 import org.gary.chatsocket.mvc.Ajax;
 import org.gary.chatsocket.mvc.Model;
 import org.gary.chatsocket.mvc.View;
+import org.gary.chatsocket.util.CookieUtil;
 
 import java.io.OutputStream;
 import java.util.UUID;
@@ -23,7 +24,7 @@ public class Security {
             String cookieString="cookie-"+name+"="+UUID.randomUUID();
             view.setPutCookie(true);
             view.setCookie(cookieString);
-            Cache.addCookie(parseCookie(cookieString));
+            Cache.addCookie(CookieUtil.parse(cookieString));
             view.setModel(generateModel(name));
             view.directView("chatwho");
         } else {
@@ -33,13 +34,20 @@ public class Security {
 
     public static void intercept(String path, String rawCookie, View view) throws Exception {
         System.out.println("into intercept");
-        String[] cookie=parseCookie(rawCookie);
+        String[] cookie= CookieUtil.parse(rawCookie);
         if (cookie[0]!=null && Cache.judgeCookie(cookie)) {
             view.setModel(generateModel(cookie[0].substring(7)));
             view.directView(path);
         } else {
             view.directView("login");
         }
+    }
+
+    public static void logout(String rawCookie,View view) throws Exception{
+        System.out.println("into logout");
+        String key=CookieUtil.parse(rawCookie)[0];
+        Cache.removeCookie(key);
+        view.directView("index");
     }
 
     private static Model generateModel(String name) throws Exception{
@@ -52,18 +60,6 @@ public class Security {
         Model model=new Model();
         model.setFields("friend",friend);
         return model;
-    }
-
-    public static String[] parseCookie(String rawCookie){
-        String[] res=new String[2];
-        String[] ss=rawCookie.split("; ");
-        for(String s:ss){
-            if(s.startsWith("cookie-")){
-                res=s.split("=");
-                break;
-            }
-        }
-        return res;
     }
 
 }
