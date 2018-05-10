@@ -56,7 +56,7 @@ public class ConnectPool {
 
     //返回一个代理过的Connection对象
     private Connection getConnFromJDBC() {
-        String url = "jdbc:mysql://localhost/test";
+        String url = "jdbc:mysql://localhost/chatsocket";
         String user = "root";
         String password = "234";
         try {

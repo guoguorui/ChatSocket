@@ -6,6 +6,7 @@
 </head>
 
 <body>
+	<a href="/">主页</a>
 	<span id="username" style="margin-left: 40%">{name}</span>
 	<span> chat to {friend}</span>
 	<div align="center">
@@ -17,8 +18,7 @@
 	<button id="send" onclick="send();" disabled="disabled">发送数据</button>
 	<button id="disconnect" onclick="disconnect();" disabled="disabled">断开连接</button>
 	</div>
-	<a href="/">主页</a>
-	
+
 	<script type="text/javascript">
 	var websocket = null;
 	function connect(){

@@ -21,7 +21,7 @@ public class AccountDao {
     }
 
     public String findName() {
-        String sql = "SELECT name FROM users";
+        String sql = "SELECT name FROM user";
         String name = null;
         try {
             rs = stmt.executeQuery(sql);
@@ -38,7 +38,7 @@ public class AccountDao {
 
     public boolean authenticate(String name, String password) {
         boolean flag = false;
-        String sql = "SELECT password FROM users where name='" + name + "'";
+        String sql = "SELECT password FROM user where name='" + name + "'";
         try {
             rs = stmt.executeQuery(sql);
             while (rs.next()) {

@@ -15,14 +15,10 @@ import java.util.concurrent.TimeUnit;
 //支持post的multipart
 //devtools
 //API化
-//实现Controller注解支持
 //实现orm
 //处理不在线
 //性能调优
 //搞定缓存
-//提供Restful API
-//Request和Response的进一步封装
-//会话用户cookie层的进一步封装
 //加入消息队列
 public class ServerMain {
 

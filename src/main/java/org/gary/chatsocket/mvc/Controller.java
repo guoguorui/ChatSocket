@@ -8,7 +8,6 @@ import java.util.HashMap;
 
 //html不能在脚本间用注释//
 //使用多路复用
-//使用阻塞队列重构连接池
 
 public class Controller {
 
@@ -50,7 +49,8 @@ public class Controller {
 
         //选择聊天对象前进行登录拦截
         if (path.contains("chatwho")) {
-            Security.intercept(path, requestHeader.get("Cookie"),view);
+            String rawCookie=requestHeader.get("Cookie");
+            Security.intercept(path,rawCookie,view);
             System.out.println("");
         }
 
@@ -62,8 +62,8 @@ public class Controller {
 
         //用户选中了要聊天的对象，进行关系映射
         else if (path.contains("wschat")) {
-            String cookie=requestHeader.get("Cookie");
-            String name=cookie.substring(0,cookie.indexOf('='));
+            String rawCookie=requestHeader.get("Cookie");
+            String name=Security.parseCookie(rawCookie)[0].substring(7);
             WebSocket.processRelationship(path,name,view);
             System.out.println("");
         }
