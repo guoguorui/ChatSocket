@@ -31,14 +31,14 @@ public class Cache {
         return redisUUID!=null && redisUUID.equals(cookie[1]);
     }
 
-    public static void addAuth(String name,String password){
+    static void addAuth(String name,String password){
         Jedis jedis=jedisPool.getResource();
         jedis.set("auth-"+name,password);
         jedis.close();
     }
 
     //0表示redis中没有对应的缓存，1表示成功匹配，-1表示账号信息错误
-    public static int judgeAuth(String name,String uploadPassword){
+    static int judgeAuth(String name,String uploadPassword){
         Jedis jedis=jedisPool.getResource();
         name="auth-"+name;
         String basePassword=jedis.get(name);

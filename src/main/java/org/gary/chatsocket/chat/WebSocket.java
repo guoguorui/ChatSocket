@@ -1,33 +1,31 @@
 package org.gary.chatsocket.chat;
 
+import jdk.internal.util.xml.impl.Input;
 import org.gary.chatsocket.mvc.Model;
 import org.gary.chatsocket.mvc.View;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.PrintWriter;
 import java.net.Socket;
 import java.nio.ByteBuffer;
-import java.nio.charset.Charset;
 import java.security.MessageDigest;
 import java.util.HashMap;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 public class WebSocket {
 
-    private String key;
-    private PrintWriter pw;
-    static HashMap<String, Socket> nameToSocket = new HashMap<String, Socket>();
-    private static HashMap<String, String> nameToFriend = new HashMap<String, String>();
+    static HashMap<String, Socket> nameToSocket = new HashMap<>();
+    private static HashMap<String, String> nameToFriend = new HashMap<>();
+    private static HashMap<String, String> nameToMessage =new HashMap<>();
+    private static ThreadPoolExecutor executor =
+            new ThreadPoolExecutor(10, 50, 60, TimeUnit.SECONDS,
+            new LinkedBlockingQueue<Runnable>());
 
-    public WebSocket(String key, PrintWriter pw, Socket client) throws IOException {
-        this.key = key;
-        this.pw = pw;
-    }
-
-    private void connect() {
+    private static void connect(String key,PrintWriter pw){
         try {
             key += "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";
             MessageDigest md = MessageDigest.getInstance("SHA-1");
@@ -44,82 +42,54 @@ public class WebSocket {
         } catch (Exception e) {
             e.printStackTrace();
         }
-
     }
 
-
-    //控制台输出
-    static void printRes(byte[] array) {
-        Charset charset = Charset.forName("UTF-8");
-        ByteArrayInputStream byteIn = new ByteArrayInputStream(array);
-        InputStreamReader reader = new InputStreamReader(byteIn, charset.newDecoder());
-        int b = 0;
-        StringBuilder res = new StringBuilder();
-        try {
-            while ((b = reader.read()) > 0) {
-                res.append(b);
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        System.out.println(res.toString());
-    }
-
-    public static void mass(String message) {
-        for (String name : nameToSocket.keySet()) {
-            Socket client = nameToSocket.get(name);
-            if (client.isClosed())
-                nameToSocket.remove(name);
-            else
-                new WriteThread(client, message).start();
-        }
-    }
-
-    static void chatToOne(String name, String message) {
+    static void writeToClient(String name, String message) {
         String friend = nameToFriend.get(name);
         Socket friendClient = nameToSocket.get(friend);
         Socket localClient = nameToSocket.get(name);
-        if (friendClient.isClosed()) {
-            nameToSocket.remove(name);
-            nameToFriend.remove(name);
+        if (friendClient==null || friendClient.isClosed()) {
+            executor.execute(new WriteTask(localClient,message+"\r\n该好友不在线...其上线后会收到信息"));
+            String unRead=nameToMessage.get(friend);
+            if(unRead==null)
+                unRead=message;
+            else
+                unRead+="\r\n"+message;
+            nameToMessage.put(friend,unRead);
         } else {
-            new WriteThread(localClient, message).start();
-            new WriteThread(friendClient, message).start();
+            executor.execute(new WriteTask(localClient,message));
+            executor.execute(new WriteTask(friendClient,message));
         }
     }
 
-    public static void processRelationship(String path, String name,View view) {
+    public static void chooseFriend(String path, String name, View view) throws IOException{
         String friend = path.split("=")[1];
-        WebSocket.nameToFriend.put(name, friend);
+        nameToFriend.put(name, friend);
         view.setModel(new Model(name,friend));
-        try {
-            view.directView("wschat");
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        view.directView("wschat");
     }
 
-    public static void processRead(String key, PrintWriter pw, Socket client, View view) {
-        WebSocket ws = null;
-        try {
-            ws = new WebSocket(key, pw, client);
-            Model model=(Model) view.getModel();
-            WebSocket.nameToSocket.put(model.getName(), client);
-            ws.connect();
-            new ReadThread(client).start();
-        } catch (IOException e) {
-            e.printStackTrace();
+    public static void connectAndListen(String key, String name,Socket client) throws IOException{
+        PrintWriter pw=new PrintWriter(client.getOutputStream());
+        WebSocket.connect(key,pw);
+        nameToSocket.put(name, client);
+        String unRead=nameToMessage.get(name);
+        if(unRead!=null){
+            executor.execute(new WriteTask(client,unRead));
+            nameToMessage.remove(name);
         }
+        executor.execute(new ReadTask(client));
     }
 
 }
 
 //要extends不要runnable，贼傻逼，搞得一个read()阻塞了
-class WriteThread extends Thread {
+class WriteTask extends Thread {
+    //client是要输出的对象
     private Socket client;
     private ByteBuffer byteBuf;
 
-    WriteThread(Socket client, String message) {
+    WriteTask(Socket client, String message) {
         byteBuf = ByteBuffer.wrap(message.getBytes());
         this.client = client;
     }
@@ -131,12 +101,9 @@ class WriteThread extends Thread {
             OutputStream out = client.getOutputStream();
             int first = 0x00;
             //是否是输出最后的WebSocket响应片段,01110001
-
             first = first + 0x80;
             first = first + 0x1;
-
             out.write(first);
-
             //2^7,payload只能显示7位，此处的limit类似于length
             if (byteBuf.limit() < 126) {
                 out.write(byteBuf.limit());
@@ -157,10 +124,8 @@ class WriteThread extends Thread {
                 out.write(byteBuf.limit() >>> 16);
                 out.write(byteBuf.limit() >>> 8);
                 out.write(byteBuf.limit() & 0xFF);
-
             }
             //返回客户端不需要maskKey
-            // Write the content
             out.write(byteBuf.array(), 0, byteBuf.limit());
             out.flush();
         } catch (Exception e) {
@@ -169,17 +134,12 @@ class WriteThread extends Thread {
     }
 }
 
-class ReadThread extends Thread {
-    private InputStream in;
+class ReadTask extends Thread {
+
     private Socket client;
 
-    ReadThread(Socket client) {
-        try {
-            this.client = client;
-            in = client.getInputStream();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+    ReadTask(Socket client) {
+        this.client=client;
     }
 
     @Override
@@ -204,19 +164,19 @@ class ReadThread extends Thread {
      + - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - +
      |                     Payload Data continued ...                |
      +---------------------------------------------------------------+
-		 */
+	*/
+
         byte[] first = new byte[1];
         try {
+            InputStream in = client.getInputStream();
+            //该读线程会循环读取
             //这里是阻塞的要害,单纯的while不会阻塞，是read()
-            int read;
-            while ((read = in.read(first, 0, 1)) > 0) {
-                //int read = in.read(first, 0, 1);
+            while ((in.read(first, 0, 1)) > 0) {
                 //清除高位
                 int b = first[0] & 0xFF;
                 //1为字符数据，8为关闭socket
                 //第1字节的后4位即是opCode
                 byte opCode = (byte) (first[0] & 0x0F);
-
                 if (opCode == 8) {
                     client.getOutputStream().close();
                     break;
@@ -245,12 +205,12 @@ class ReadThread extends Thread {
                         shift += 8;
                     }
                 }
-
                 //掩码，有4个字节
                 byte[] mask = new byte[4];
                 in.read(mask, 0, 4);
                 int readThisFragment = 1;
                 ByteBuffer byteBuf = ByteBuffer.allocate(payloadLength + 25);
+                //取出发送端client的name
                 String name = "";
                 for (String getKey : WebSocket.nameToSocket.keySet()) {
                     if (WebSocket.nameToSocket.get(getKey).equals(client)) {
@@ -274,11 +234,9 @@ class ReadThread extends Thread {
                     readThisFragment++;
                 }
                 byteBuf.flip();
-                //responseClient(byteBuf, true);
-                WebSocket.printRes(byteBuf.array());
                 String message = new String(byteBuf.array());
-                //Controller.mass(message);
-                WebSocket.chatToOne(name, message);
+                //将从浏览器input读取到的信息发送给浏览器textArea
+                WebSocket.writeToClient(name, message);
             }
         } catch (Exception e) {
             e.printStackTrace();
