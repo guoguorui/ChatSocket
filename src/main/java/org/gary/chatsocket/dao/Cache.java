@@ -31,6 +31,12 @@ public class Cache {
         return redisUUID!=null && redisUUID.equals(cookie[1]);
     }
 
+    public static void updateExpire(String key){
+        Jedis jedis=jedisPool.getResource();
+        jedis.expire(key,1800);
+        jedis.close();
+    }
+
     static void addAuth(String name,String password){
         Jedis jedis=jedisPool.getResource();
         jedis.set("auth-"+name,password);

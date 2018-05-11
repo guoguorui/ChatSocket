@@ -9,15 +9,17 @@ class ReadTask extends Thread {
     private Socket client;
     private ResourceReclaim resourceReclaim;
     private String name;
+    private String friend;
 
     ReadTask(Socket client,String name) {
         this.client=client;
         this.name=name;
     }
 
-    ReadTask(Socket client,String name,ResourceReclaim resourceReclaim){
+    ReadTask(Socket client,String name,String friend,ResourceReclaim resourceReclaim){
         this(client,name);
         this.resourceReclaim = resourceReclaim;
+        this.friend=friend;
     }
 
     @Override
@@ -106,8 +108,8 @@ class ReadTask extends Thread {
                 byteBuf.flip();
                 String message = new String(byteBuf.array());
                 //将从浏览器input读取到的信息发送给浏览器textArea
-                WebSocket.writeToClient(name, message);   //3
-                //MQWebSocket.writeToClient(client,message);
+                //WebSocket.writeToClient(name, message);   //3
+                MQWebSocket.writeToClient(client,name,friend,message);
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -117,9 +119,8 @@ class ReadTask extends Thread {
                     resourceReclaim.close();
                     System.out.println("reclaim success");
                 }
-                WebSocket.nameToSocket.remove(name);    //4
-                WebSocket.nameToFriend.remove(name);
-                //MQWebSocket.socketToFriend.remove(client);
+                //WebSocket.nameToSocket.remove(name);    //4
+                //WebSocket.nameToFriend.remove(name);
             } catch (Exception e) {
                 e.printStackTrace();
             }

@@ -36,11 +36,9 @@ class Request {
         String path = "";
         int ch = 0;
         StringBuilder sb = new StringBuilder();
-        //可能是由缓存机制引起的空socket
         if (line == null || line.contains("router") || line.contains("webnoauth")) {
             return "";
         }
-
         if (line.contains("GET")) {
             path = line.split(" ")[1];
             while ((line = br.readLine()) != null) {

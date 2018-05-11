@@ -36,6 +36,7 @@ public class Security {
         System.out.println("into intercept");
         String[] cookie= CookieUtil.parse(rawCookie);
         if (cookie[0]!=null && Cache.judgeCookie(cookie)) {
+            Cache.updateExpire(cookie[0]);
             view.setModel(Model.generateModel(cookie[0].substring(7)));
             view.directView(path);
         } else {
