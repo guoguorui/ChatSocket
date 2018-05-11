@@ -8,13 +8,15 @@ class ReadTask extends Thread {
 
     private Socket client;
     private ResourceReclaim resourceReclaim;
+    private String name;
 
-    ReadTask(Socket client) {
+    ReadTask(Socket client,String name) {
         this.client=client;
+        this.name=name;
     }
 
-    ReadTask(Socket client,ResourceReclaim resourceReclaim){
-        this.client=client;
+    ReadTask(Socket client,String name,ResourceReclaim resourceReclaim){
+        this(client,name);
         this.resourceReclaim = resourceReclaim;
     }
 
@@ -45,7 +47,6 @@ class ReadTask extends Thread {
         byte[] first = new byte[1];
         try {
             InputStream in = client.getInputStream();
-            //该读线程会循环读取
             //这里是阻塞的要害,单纯的while不会阻塞，是read()
             while ((in.read(first, 0, 1)) > 0) {
                 //清除高位
@@ -86,14 +87,6 @@ class ReadTask extends Thread {
                 in.read(mask, 0, 4);
                 int readThisFragment = 1;
                 ByteBuffer byteBuf = ByteBuffer.allocate(payloadLength + 25);
-                //取出发送端client的name
-                String name = "";
-                /*for (String getKey : WebSocket.nameToSocket.keySet()) {
-                    if (WebSocket.nameToSocket.get(getKey).equals(client)) {
-                        name = getKey;
-                    }
-                }*/ //3
-                name=MQWebSocket.socketToName.get(client);
                 String address = name + ": ";
                 byteBuf.put(address.getBytes("UTF-8"));
                 while (payloadLength > 0) {
@@ -113,8 +106,8 @@ class ReadTask extends Thread {
                 byteBuf.flip();
                 String message = new String(byteBuf.array());
                 //将从浏览器input读取到的信息发送给浏览器textArea
-                //WebSocket.writeToClient(name, message);   //4
-                MQWebSocket.writeToClient(client,message);
+                WebSocket.writeToClient(name, message);   //3
+                //MQWebSocket.writeToClient(client,message);
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -124,6 +117,9 @@ class ReadTask extends Thread {
                     resourceReclaim.close();
                     System.out.println("reclaim success");
                 }
+                WebSocket.nameToSocket.remove(name);    //4
+                WebSocket.nameToFriend.remove(name);
+                //MQWebSocket.socketToFriend.remove(client);
             } catch (Exception e) {
                 e.printStackTrace();
             }

@@ -15,7 +15,7 @@ import java.util.concurrent.TimeUnit;
 public class WebSocket {
 
     static HashMap<String, Socket> nameToSocket = new HashMap<>();
-    private static HashMap<String, String> nameToFriend = new HashMap<>();
+    static HashMap<String, String> nameToFriend = new HashMap<>();
     private static HashMap<String, String> nameToMessage =new HashMap<>();
     private static ThreadPoolExecutor executor =
             new ThreadPoolExecutor(10, 50, 60, TimeUnit.SECONDS,
@@ -36,25 +36,6 @@ public class WebSocket {
         pw.flush();
     }
 
-    static void writeToClient(String name, String message) {
-        String friend = nameToFriend.get(name);
-        Socket friendClient = nameToSocket.get(friend);
-        Socket localClient = nameToSocket.get(name);
-        if (friendClient==null || friendClient.isClosed()) {
-            nameToSocket.remove(friend);
-            executor.execute(new WriteTask(localClient,message+"\r\n该好友不在线...其上线后会收到信息"));
-            String unRead=nameToMessage.get(friend);
-            if(unRead==null)
-                unRead=message;
-            else
-                unRead+="\r\n"+message;
-            nameToMessage.put(friend,unRead);
-        } else {
-            executor.execute(new WriteTask(localClient,message));
-            executor.execute(new WriteTask(friendClient,message));
-        }
-    }
-
     public static void chooseFriend(String path,String rawCookie,View view) throws Exception{
         String name= CookieUtil.getName(rawCookie);
         String friend = path.split("=")[1];
@@ -73,8 +54,25 @@ public class WebSocket {
             executor.execute(new WriteTask(client,unRead));
             nameToMessage.remove(name);
         }
-        executor.execute(new ReadTask(client));
+        executor.execute(new ReadTask(client,name));
     }
 
+    static void writeToClient(String name, String message) {
+        String friend = nameToFriend.get(name);
+        Socket friendClient = nameToSocket.get(friend);
+        Socket localClient = nameToSocket.get(name);
+        if (friendClient==null || friendClient.isClosed()) {
+            executor.execute(new WriteTask(localClient,message+"\r\n该好友不在线...其上线后会收到信息"));
+            String unRead=nameToMessage.get(friend);
+            if(unRead==null)
+                unRead=message;
+            else
+                unRead+="\r\n"+message;
+            nameToMessage.put(friend,unRead);
+        } else {
+            executor.execute(new WriteTask(localClient,message));
+            executor.execute(new WriteTask(friendClient,message));
+        }
+    }
 }
 

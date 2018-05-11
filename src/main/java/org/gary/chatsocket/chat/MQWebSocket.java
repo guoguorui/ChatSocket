@@ -17,9 +17,7 @@ import java.util.concurrent.TimeUnit;
 public class MQWebSocket {
 
     //local的socket到remote的friend
-    private static HashMap<Socket,String> socketToFriend=new HashMap<>();
-    //local的socket到local的name
-    static HashMap<Socket,String> socketToName=new HashMap<>();
+    static HashMap<Socket,String> socketToFriend=new HashMap<>();
 
     private static ThreadPoolExecutor executor =
             new ThreadPoolExecutor(10, 50, 60, TimeUnit.SECONDS,
@@ -38,12 +36,11 @@ public class MQWebSocket {
     public static void connectAndListen(String path,String rawCookie,String key,Socket client) throws Exception{
         String name= CookieUtil.getName(rawCookie);
         String friend = path.split("=")[1];
-        socketToName.put(client,name);
         socketToFriend.put(client,friend);
         PrintWriter pw=new PrintWriter(client.getOutputStream());
         WebSocket.connect(key,pw);
         ResourceReclaim resourceReclaim =ActiveMQ.ConsumerFromQueue("chat-"+name,new MyMessageListener(client));
-        executor.execute(new ReadTask(client, resourceReclaim));
+        executor.execute(new ReadTask(client, name,resourceReclaim));
     }
 
     //浏览器发送来的数据分为两份
