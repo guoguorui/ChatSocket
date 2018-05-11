@@ -9,7 +9,6 @@ import java.net.Socket;
 
 //使用多路复用
 //完善缓存机制
-//加入消息队列
 
 public class Controller {
 
@@ -88,7 +87,8 @@ public class Controller {
 
         //静态页面渲染
         else if (path.contains("static")) {
-            view.directStatic(path);
+            String lastModified=request.getRequestHeader().get("If-Modified-Since");
+            view.directStatic(path,lastModified);
         }
 
         //普通页面渲染

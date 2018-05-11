@@ -1,5 +1,6 @@
 package org.gary.chatsocket.mvc;
 
+import org.gary.chatsocket.util.DateUtil;
 import org.gary.chatsocket.util.GZipUtil;
 import com.sun.xml.internal.messaging.saaj.util.ByteOutputStream;
 
@@ -47,11 +48,18 @@ public class View {
     }
 
 
-    void directStatic(String path) throws IOException {
+    void directStatic(String path,String lastModified) throws Exception {
         path = path.replaceAll("/", "\\\\");
         String staticName = filename + path;
+        if(lastModified!=null){
+            if(!DateUtil.judgeExpire(staticName,lastModified)){
+                System.out.println("the static file doesn't expire");
+                os.write("HTTP/1.1 304 Not Modified\r\n".getBytes());
+                return;
+            }
+        }
         responseHeader.put("Cache-Control", "max-age=5184000");
-        responseHeader.put("Last-Modified", "Feb, 28 Sep 2018 07:43:37 GMT");
+        responseHeader.put("Last-Modified", DateUtil.getLastModified(staticName));
         //图片需要用字节数组传输
         if (!path.contains(".jpg") && !path.contains(".ico")) {
             responseHeader.put("Content-Type", "text/css");

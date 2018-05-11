@@ -31,8 +31,8 @@ public class MQWebSocket {
         view.directView("wschat");
     }
 
-    //使用MQ监听自己的queue，响应方法是writeToClient
-    //使用ReadTask监听浏览器，响应方法是MyMessageListener.onMessage，这里使用了类回调技术
+    //使用MQ监听自己的queue，响应方法是MyMessageListener.onMessage，这里使用了类回调技术
+    //使用ReadTask监听浏览器，响应方法是writeToClient
     public static void connectAndListen(String path,String rawCookie,String key,Socket client) throws Exception{
         String name= CookieUtil.getName(rawCookie);
         String friend = path.split("=")[1];
